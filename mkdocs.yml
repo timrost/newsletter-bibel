@@ -55,9 +55,13 @@ nav:
       - ConsentLog Schema: specs/consentlog.schema.json
       - Newsletter Beispiel: specs/newsletter.example.json
   - Flows:
-      - Übersicht: flows/README.md
-      - n8n Ingest (RSS → Article): flows/n8n-phase2-ingest.json
-      - n8n Export (→ Newsletter): flows/n8n-phase2-export.json
+    - Übersicht: flows/README.md
+    - Ingest (Loop Feeds → articles.json): flows/n8n-phase2-ingest-loop-feeds.json
+    - Export (?region=…): flows/n8n-phase2-export-by-region.json
+    - Discovery (Seeds → feeds.json): flows/n8n-phase2-discovery-seeds-to-feeds.json
+    - LEGACY – Ingest (Single-Feed): flows/n8n-phase2-ingest.json
+    - LEGACY – Ingest (MVP Hannover): flows/n8n-phase2-ingest-mvp-hannover.json
+    - LEGACY – Export (ohne Region): flows/n8n-phase2-export.json
   - Scripts:
       - Übersicht: scripts/README.md
       - GitHub Commit Step: scripts/github-commit-step.md
@@ -84,3 +88,4 @@ markdown_extensions:
 
 plugins:
   - search
+
