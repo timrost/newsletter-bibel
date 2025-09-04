@@ -38,6 +38,7 @@ nav:
   - Entscheidungen (ADR):
       - ADR-0001 Hosting-Strategie: adr/0001-hosting-strategie.md
       - ADR-0002 Snippet/Teaser-Policy: adr/0002-snippet-policy.md
+      - ADR-0003 Geo-Aboutness/Region-Scoring: adr/ADR-0003-geo-aboutness-region-scoring.md
   - Sprints:
       - Sprint 1 (Recht & Architektur): sprints/sprint1.md
       - Sprint 2 (Hannover MVP): sprints/sprint2.md
