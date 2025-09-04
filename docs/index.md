@@ -8,3 +8,14 @@ Chats dienen nur zur Erarbeitung und landen anschließend als Update hier.
 - **Regionaltreue:** 100 % passende Inhalte je Landkreis (Geo‑Scoring + Aboutness).
 - **Vollautomatisierung + Review‑Gate:** Mensch im Loop ist anfangs aktivierbar.
 - **Vendor‑neutral:** Self‑host‑fähig, Git‑Repo als Single Source of Truth.
+
+
+#### Prompt neues Thema
+```json
+Update: Bitte beachten
+Projekt-Bibel: https://timrost.github.io/newsletter-bibel/
+Repo: https://github.com/timrost/newsletter-bibel
+Updates: Dateien werden per GitHub-Weboberfläche (Option A) eingepflegt.
+Master-Versionen haben Vorrang gegenüber Kurzfassungen.
+Bitte streng bibelbasiert arbeiten.
+```
