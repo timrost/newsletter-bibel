@@ -15,21 +15,23 @@ Chats dienen nur zur Erarbeitung – relevante Ergebnisse landen **immer hier**.
   "Update": "Bitte beachten 🚨",
   "Projekt-Bibel": "https://timrost.github.io/newsletter-bibel/",
   "Repo": "https://github.com/timrost/newsletter-bibel",
-  "Phase": "1 – Doku zuerst (Phase 2 Technik danach)",
+  "Phase": "2 – Technik (nach Doku-Phase abgeschlossen am 2025-09-04)",
   "Ziel dieses Chats": "<Thema>",
   "Deliverables": ["<…>"],
   "Arbeitsweise": {
     "Uploads": "GitHub-Weboberfläche (Option A)",
     "Master-Versionen": "haben Vorrang vor Kurzfassungen",
-    "Bibelbasiert": "ja – mit frischer Web-Recherche & Zitaten (Primärquellen)",
-    "Navigation": "mkdocs.yml ergänzen, bestehende Einträge nicht löschen"
+    "Bibelbasiert": "ja – nur Inhalte der Bibel + frische Web-Recherche mit Primärquellen",
+    "Navigation": "mkdocs.yml ergänzen, bestehende Einträge nicht löschen",
+    "Keine Hintergrundarbeit": "Alles im Chat, sofort lieferbar"
   },
   "ADR-Hinweis": {
-    "ADR-0003": "Geo-Aboutness / Region-Scoring (Accepted)",
-    "ADR-0004": "Bild-Policy (folgt)"
+    "ADR-0003": "Geo-Aboutness / Region-Scoring (Accepted, Appendix integriert)",
+    "ADR-0004": "Bild-Policy (Proposed)"
   },
   "Bitte liefern": [
     "upload-fertige Markdown/ZIPs unter docs/",
+    "n8n-Flows (export JSON), JSON-Schemas, GitHub-Commit-Step",
     "README mit Merge-Schritten + mkdocs.yml-Nav-Snippet"
   ],
   "Sonstiges": {
