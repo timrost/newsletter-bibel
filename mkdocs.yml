@@ -54,6 +54,8 @@ nav:
       - SourceProfile Schema: specs/sourceprofile.schema.json
       - ConsentLog Schema: specs/consentlog.schema.json
       - Newsletter Beispiel: specs/newsletter.example.json
+      - Regionen Sample: specs/regions.sample.json
+      - Regionen Schema: specs/regions.schema.json
   - Flows:
     - Übersicht: flows/README.md
     - Ingest (Loop Feeds → articles.json): flows/n8n-phase2-ingest-loop-feeds.json
@@ -88,4 +90,5 @@ markdown_extensions:
 
 plugins:
   - search
+
 
