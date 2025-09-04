@@ -1,5 +1,8 @@
 site_name: Regionaler KI-Newsletter (DE) – Projekt-Bibel
-site_url: https://<USER>.github.io/<REPO>
+site_url: https://timrost.github.io/newsletter-bibel/
+repo_url: https://github.com/timrost/newsletter-bibel
+edit_uri: edit/main/docs/
+
 theme:
   name: material
   language: de
@@ -10,6 +13,8 @@ theme:
     - search.highlight
     - content.code.copy
     - content.tabs.link
+    - content.action.edit
+    - content.action.view
   palette:
     - scheme: default
       primary: indigo
