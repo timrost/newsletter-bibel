@@ -20,6 +20,7 @@ theme:
     - scheme: default
       primary: indigo
       accent: indigo
+
 nav:
   - Übersicht: index.md
   - Projekt:
@@ -44,14 +45,28 @@ nav:
       - ADR-0004 Bild-Policy (Proposed): adr/ADR-0004-bild-policy.md
   - Runbooks:
       - Newsletter – DOI/Impressum/Tracking (Master): runbooks/newsletter-compliance-runbook-master-2025-09-04.md
+      - Phase 2 Readme: runbooks/phase2-readme.md
+      - Pilotplan Phase 2: runbooks/phase2-pilot.md
+  - Specs:
+      - Article Schema: specs/article.schema.json
+      - SourceProfile Schema: specs/sourceprofile.schema.json
+      - ConsentLog Schema: specs/consentlog.schema.json
+      - Newsletter Beispiel: specs/newsletter.example.json
+  - Flows:
+      - n8n Ingest (RSS → Article): flows/n8n-phase2-ingest.json
+      - n8n Export (→ Newsletter): flows/n8n-phase2-export.json
+  - Scripts:
+      - GitHub Commit Step: scripts/github-commit-step.md
   - Sprints:
       - Sprint 1 (Recht & Architektur): sprints/sprint1.md
       - Sprint 2 (Hannover MVP): sprints/sprint2.md
   - Impressum: impressum.md
+
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/<USER>/<REPO>
+      link: https://github.com/timrost/newsletter-bibel
+
 markdown_extensions:
   - admonition
   - attr_list
@@ -62,5 +77,6 @@ markdown_extensions:
   - pymdownx.tabbed
   - pymdownx.tasklist
   - pymdownx.tilde
+
 plugins:
   - search
