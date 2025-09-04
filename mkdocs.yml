@@ -41,6 +41,7 @@ nav:
       - ADR-0001 Hosting-Strategie: adr/0001-hosting-strategie.md
       - ADR-0002 Snippet/Teaser-Policy: adr/0002-snippet-policy.md
       - ADR-0003 Geo-Aboutness/Region-Scoring: adr/ADR-0003-geo-aboutness-region-scoring.md
+      - ADR-0004 Bild-Policy (Proposed): adr/ADR-0004-bild-policy.md
   - Runbooks:
       - Newsletter – DOI/Impressum/Tracking (Master): runbooks/newsletter-compliance-runbook-master-2025-09-04.md
   - Sprints:
