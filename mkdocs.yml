@@ -1,0 +1,54 @@
+site_name: Regionaler KI-Newsletter (DE) – Projekt-Bibel
+site_url: https://<USER>.github.io/<REPO>
+theme:
+  name: material
+  language: de
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+nav:
+  - Übersicht: index.md
+  - Projekt:
+      - Ziele & Roadmap: overview/roadmap.md
+      - Glossar: overview/glossar.md
+  - Recherche:
+      - Recht & Compliance (DE/EU): research/recht.md
+      - Quellen & Discovery: research/quellen.md
+  - Architektur:
+      - Systemübersicht: architecture/overview.md
+      - Datenmodell: architecture/data.md
+  - How-tos:
+      - Setup Hannover MVP: howto/setup-hannover.md
+      - Newsletter-Versand: howto/newsletter.md
+  - Reference:
+      - APIs & Schnittstellen: reference/apis.md
+  - Entscheidungen (ADR):
+      - ADR-0001 Hosting-Strategie: adr/0001-hosting-strategie.md
+      - ADR-0002 Snippet/Teaser-Policy: adr/0002-snippet-policy.md
+  - Sprints:
+      - Sprint 1 (Recht & Architektur): sprints/sprint1.md
+      - Sprint 2 (Hannover MVP): sprints/sprint2.md
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/<USER>/<REPO>
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.tasklist
+  - pymdownx.tilde
+plugins:
+  - search
