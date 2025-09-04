@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://timrost.github.io/newsletter-bibel/schemas/sourceprofile.schema.json",
+  "title": "SourceProfile",
+  "description": "Metadata about a source incl. robots/TDM/consent footprint.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable identifier, e.g. domain name."
+    },
+    "name": {
+      "type": "string"
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri"
+    },
+    "rss_urls": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "robots_txt_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "tdm_opt_out": {
+      "type": "boolean",
+      "description": "True if TDM opt‑out detected."
+    },
+    "copyright_policy_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "contact_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "region_hint": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Known geo focus keywords."
+    },
+    "crawl_delay_seconds": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "notes": {
+      "type": "string"
+    },
+    "last_checked_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "id",
+    "name"
+  ]
+}

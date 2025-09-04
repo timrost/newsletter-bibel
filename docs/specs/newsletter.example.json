@@ -1,0 +1,57 @@
+{
+  "export_version": "1.0.0",
+  "generated_at": "2025-09-04T13:11:34.360551+00:00",
+  "region": "Hannover",
+  "count": 2,
+  "articles": [
+    {
+      "id": "https://example.com/post/alpha",
+      "title": "Alpha: KI-Projekt in Hannover gestartet",
+      "url": "https://example.com/post/alpha",
+      "summary": "Das Projekt Alpha fördert regionale KI-Anwendungen in Hannover.",
+      "content_text": "Volltext oder langer Auszug …",
+      "published_at": "2025-09-03T10:00:00Z",
+      "modified_at": "2025-09-03T10:00:00Z",
+      "author": "Presse Team",
+      "source_id": "example.com",
+      "source_name": "Example News",
+      "region_score": 0.93,
+      "categories": [
+        "KI",
+        "Region Hannover"
+      ],
+      "tags": [
+        "förderung",
+        "projekt"
+      ],
+      "images": [],
+      "language": "de",
+      "detected_region": "Hannover",
+      "created_at": "2025-09-04T07:00:00Z"
+    },
+    {
+      "id": "https://example.org/news/beta",
+      "title": "Beta: Messe in Laatzen mit KI-Schwerpunkt",
+      "url": "https://example.org/news/beta",
+      "summary": "In Laatzen findet eine Fachmesse mit Fokus auf KI statt.",
+      "content_text": "Weitere Details …",
+      "published_at": "2025-09-02T08:30:00Z",
+      "modified_at": "2025-09-02T08:30:00Z",
+      "author": "Redaktion",
+      "source_id": "example.org",
+      "source_name": "Example Org",
+      "region_score": 0.77,
+      "categories": [
+        "Messe",
+        "Laatzen"
+      ],
+      "tags": [
+        "veranstaltung"
+      ],
+      "images": [],
+      "language": "de",
+      "detected_region": "Hannover",
+      "created_at": "2025-09-04T07:00:00Z"
+    }
+  ]
+}

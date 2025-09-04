@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://timrost.github.io/newsletter-bibel/schemas/article.schema.json",
+  "title": "Article",
+  "description": "Normalized article item for the Regionaler KI‑Newsletter.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable identifier (URL or UUID)."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "content_text": {
+      "type": "string",
+      "description": "Plain‑text content (optional)."
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "modified_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "author": {
+      "type": "string"
+    },
+    "source_id": {
+      "type": "string",
+      "description": "Usually the source domain."
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "region_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "caption": {
+            "type": "string"
+          },
+          "license": {
+            "type": "string",
+            "description": "License string (e.g., CC BY 4.0)."
+          },
+          "attribution": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      }
+    },
+    "language": {
+      "type": "string",
+      "default": "de"
+    },
+    "detected_region": {
+      "type": "string",
+      "default": "Hannover"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "id",
+    "title",
+    "url",
+    "published_at",
+    "source_id",
+    "region_score"
+  ]
+}

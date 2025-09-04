@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://timrost.github.io/newsletter-bibel/schemas/consentlog.schema.json",
+  "title": "ConsentLog",
+  "description": "GDPR/TTDSG friendly consent events (DOI + tracking consent).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Event id (UUID)."
+    },
+    "subject_email_hash": {
+      "type": "string",
+      "description": "Hashed email of the user (e.g., SHA256:hex)."
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "subscribe",
+        "confirm",
+        "unsubscribe",
+        "withdraw_tracking"
+      ]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ip": {
+      "type": "string"
+    },
+    "user_agent": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "webform",
+        "api",
+        "import"
+      ]
+    },
+    "double_opt_in": {
+      "type": "boolean"
+    },
+    "evidence_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Link to DOI log page or audit artifact."
+    },
+    "privacy_version": {
+      "type": "string",
+      "description": "Policy version string (e.g., 2025‑09‑01)."
+    },
+    "tracking_consent": {
+      "type": "boolean",
+      "description": "True if user consented to opens/clicks tracking."
+    }
+  },
+  "required": [
+    "id",
+    "subject_email_hash",
+    "action",
+    "timestamp"
+  ]
+}

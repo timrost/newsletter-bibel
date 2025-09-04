@@ -1,0 +1,136 @@
+{
+  "name": "Phase2: Export Newsletter JSON (Webhook → newsletter.json)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "phase2/export",
+        "httpMethod": "GET",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "Webhook1",
+      "name": "Webhook: GET /phase2/export",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "filePath": "/data/staging/articles.json",
+        "binaryPropertyName": "data"
+      },
+      "id": "ReadBinaryFile1",
+      "name": "Read Binary File: /data/staging/articles.json",
+      "type": "n8n-nodes-base.readBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "propertyName": "data"
+      },
+      "id": "MoveBinaryData1",
+      "name": "Move Binary Data: to text",
+      "type": "n8n-nodes-base.moveBinaryData",
+      "typeVersion": 1,
+      "position": [
+        40,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Build final newsletter export structure from articles.json text\nconst raw = items[0].json.data;\nlet articles = [];\ntry { articles = JSON.parse(raw); } catch (e) { articles = []; }\n\n// dedupe by url\nconst seen = new Set();\narticles = articles.filter(a => {\n  const key = a.url || a.id;\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n});\n\n// sort by region_score desc then published_at desc\nconst toDate = v => { const d = new Date(v); return isNaN(d) ? 0 : d.getTime(); };\narticles.sort((a,b) => (b.region_score - a.region_score) || (toDate(b.published_at) - toDate(a.published_at)));\n\nconst out = {\n  export_version: \"1.0.0\",\n  generated_at: new Date().toISOString(),\n  region: \"Hannover\",\n  count: articles.length,\n  articles\n};\n\nreturn [{ json: out }];\n"
+      },
+      "id": "FunctionBuildExport",
+      "name": "Function: Build newsletter.json",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        280,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "responseBody": "={{$json}}",
+        "responseCode": 200,
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "RespondToWebhook1",
+      "name": "Respond to Webhook (JSON)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        520,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook: GET /phase2/export": {
+      "main": [
+        [
+          {
+            "node": "Read Binary File: /data/staging/articles.json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Binary File: /data/staging/articles.json": {
+      "main": [
+        [
+          {
+            "node": "Move Binary Data: to text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move Binary Data: to text": {
+      "main": [
+        [
+          {
+            "node": "Function: Build newsletter.json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function: Build newsletter.json": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook (JSON)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "staticData": null,
+  "id": "phase2-export-2faa6d1e"
+}
