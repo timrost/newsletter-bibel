@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://timrost.github.io/newsletter-bibel/schemas/regions.schema.json",
+  "title": "RegionsConfig",
+  "description": "Multi-region configuration for geo scoring (DE/DACH).",
+  "type": "object",
+  "properties": {
+    "regions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "slug (e.g., 'region-hannover', 'berlin')"
+          },
+          "name": {
+            "type": "string"
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "domainBoosts": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "pathRules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "re": {
+                  "type": "string",
+                  "description": "JS regex (no flags), matches URL pathname (lowercase)"
+                },
+                "w": {
+                  "type": "number",
+                  "description": "weight added if regex matches"
+                }
+              },
+              "required": [
+                "re",
+                "w"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      }
+    }
+  },
+  "required": [
+    "regions"
+  ],
+  "additionalProperties": false
+}

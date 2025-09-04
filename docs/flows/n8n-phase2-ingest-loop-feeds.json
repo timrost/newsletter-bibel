@@ -1,0 +1,221 @@
+{
+  "name": "Phase2: Ingest (Loop Feeds → articles.json)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "Manual",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -920,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "filePath": "/data/config/feeds.json",
+        "binaryPropertyName": "data"
+      },
+      "id": "ReadFeedsFile",
+      "name": "Read Binary File: /data/config/feeds.json",
+      "type": "n8n-nodes-base.readBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        -700,
+        -80
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "propertyName": "data"
+      },
+      "id": "MoveToText",
+      "name": "Move Binary Data: to text",
+      "type": "n8n-nodes-base.moveBinaryData",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Build a list of feed items from feeds.json or fallback seeds\n// Expected file format: { \"feeds\": [\"https://…/feed\", …] }\nlet feeds = [];\ntry {\n  const raw = items[0]?.json?.data || '';\n  const j = JSON.parse(raw);\n  if (Array.isArray(j.feeds)) feeds = j.feeds;\n} catch (e) {}\n\n// Fallback seeds if file missing/empty:\nif (feeds.length === 0) {\n  feeds = [\n    'https://www.haz.de/arc/outboundfeeds/rss/',\n    'https://www.uni-hannover.de/de/universitaet/aktuelles/feed'\n  ];\n}\n\n// Normalize + dedupe\nconst norm = u => {\n  try { const { hostname, pathname, protocol } = new URL(u); return `${protocol}//${hostname}${pathname}`; } catch { return u; }\n};\nconst seen = new Set();\nconst out = [];\nfor (const f of feeds) {\n  const key = norm(f);\n  if (seen.has(key)) continue;\n  seen.add(key);\n  out.push({ json: { feedUrl: f } });\n}\nreturn out;\n"
+      },
+      "id": "FnFeedItems",
+      "name": "Function: Build Feed Items",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -260,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$json[\"feedUrl\"]}}",
+        "options": {
+          "includeFullArticle": false
+        }
+      },
+      "id": "RSSRead",
+      "name": "RSS Feed Read (per item)",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        -20,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Multi-Region scoring (Hannover exemplarisch, schnell erweiterbar)\nconst regions = [\n  {\n    id: \"region-hannover\",\n    keywords: ['hannover','region hannover','garbsen','langenhagen','seelze','ronnenberg','isernhagen','hemmingen','laatzen','pattensen','wunstorf','wedemark','springe','gehrden','wennigsen','burgdorf','barsinghausen','lehrte','bothfeld','linden','vahrenwald','list','misburg','anderten','ricklingen','döhren'],\n    domainBoosts: { 'haz.de': 0.15, 'neuepresse.de': 0.15, 'hannover.de': 0.2, 'region-hannover.de': 0.2 },\n    pathRules: [\n      { re: /(^|\\/)(lokales|stadt|region)\\/hannover(\\/|$)/, w: 0.7 },\n      { re: /(^|\\/)hannover(\\/|$)/, w: 0.6 },\n      { re: /(^|\\/)(garbsen|langenhagen|seelze|laatzen|ronnenberg|isernhagen|hemmingen|wedemark|pattensen|springe|gehrden|wunstorf)(\\/|$)/, w: 0.5 },\n    ]\n  }\n];\n\nconst KEYWORD_W = 0.3;\nconst BOOST = { 'hannover': 2.0, 'region hannover': 1.5 };\n\nreturn items.map(it => {\n  const j = it.json;\n  const text = [j.title, j.description, j.content, (j.categories||[]).join(' ')]\n    .filter(Boolean).join(' ').toLowerCase();\n  let domain = '', path = '';\n  try { const u = new URL(j.link||''); domain = (u.hostname||'').replace(/^www\\./,'').toLowerCase(); path = (u.pathname||'').toLowerCase(); } catch {}\n\n  const region_scores = {};\n  for (const r of regions) {\n    let s = 0;\n    if (r.domainBoosts && r.domainBoosts[domain]) s += r.domainBoosts[domain];\n    for (const k of (r.keywords||[])) {\n      const re = new RegExp(`\\\\b${k.replace(/[-/\\\\^$*+?.()|[\\]{}]/g, '\\\\$&')}\\\\b`, 'gi');\n      const hits = (text.match(re)||[]).length;\n      if (hits>0) s += hits * (BOOST[k] || 1.0) * KEYWORD_W;\n    }\n    for (const rule of (r.pathRules||[])) {\n      if (rule.re.test(path)) s += rule.w;\n    }\n    region_scores[r.id] = Math.max(0, Math.min(1, s));\n  }\n  let bestRegion = null, bestScore = 0;\n  for (const [rid, sc] of Object.entries(region_scores)) {\n    if (sc > bestScore) { bestRegion = rid; bestScore = sc; }\n  }\n  j.detected_region = bestRegion;\n  j.regionScore = Number(bestScore.toFixed(3));\n  j.region_scores = Object.fromEntries(Object.entries(region_scores).map(([k,v])=>[k, Number(v.toFixed(3))]));\n  return { json: j };\n});\n"
+      },
+      "id": "FnScore",
+      "name": "Function: Multi-Region Score",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        220,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Map → Article (+region)\nfunction pick(v, d=null) { return (v === undefined || v === null || v === '') ? d : v; }\nconst now = new Date().toISOString();\nreturn items.map(item => {\n  const j = item.json;\n  const link = pick(j.link, '');\n  const urlObj = (() => { try { return new URL(link); } catch { return null; } })();\n  const sourceDomain = urlObj ? urlObj.hostname.replace(/^www\\./,'') : '';\n  const id = link || `${pick(j.title,'')}_${pick(j.isoDate, now)}`;\n  return {\n    json: {\n      id, title: pick(j.title,''), url: link, summary: pick(j.description,''),\n      content_text: pick(j.contentSnippet,''),\n      published_at: pick(j.isoDate, now), modified_at: pick(j.updated, pick(j.isoDate, now)),\n      author: pick(j.creator,''), source_id: sourceDomain, source_name: pick(j.feedTitle,''),\n      region_score: pick(j.regionScore,0), detected_region: pick(j.detected_region,null),\n      categories: pick(j.categories,[]), tags: [], images: [], language: \"de\",\n      created_at: now\n    }\n  };\n});\n"
+      },
+      "id": "FnMap",
+      "name": "Function: Map → Article (+region)",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        460,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Aggregate all items into a single JSON array and attach as binary\nconst arr = items.map(i => i.json);\nconst buf = Buffer.from(JSON.stringify(arr, null, 2), 'utf-8');\nconst binary = await this.helpers.prepareBinaryData(buf, 'articles.json', 'application/json');\nreturn [ { json: { count: arr.length }, binary: { data: binary } } ];\n"
+      },
+      "id": "FnAggregate",
+      "name": "Function: Aggregate → Binary(JSON)",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        700,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "fileName": "/data/staging/articles.json",
+        "binaryPropertyName": "data"
+      },
+      "id": "WriteFile",
+      "name": "Write Binary File: /data/staging/articles.json",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        940,
+        -80
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Binary File: /data/config/feeds.json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Binary File: /data/config/feeds.json": {
+      "main": [
+        [
+          {
+            "node": "Move Binary Data: to text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move Binary Data: to text": {
+      "main": [
+        [
+          {
+            "node": "Function: Build Feed Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function: Build Feed Items": {
+      "main": [
+        [
+          {
+            "node": "RSS Feed Read (per item)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Feed Read (per item)": {
+      "main": [
+        [
+          {
+            "node": "Function: Multi-Region Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function: Multi-Region Score": {
+      "main": [
+        [
+          {
+            "node": "Function: Map → Article (+region)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function: Map → Article (+region)": {
+      "main": [
+        [
+          {
+            "node": "Function: Aggregate → Binary(JSON)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function: Aggregate → Binary(JSON)": {
+      "main": [
+        [
+          {
+            "node": "Write Binary File: /data/staging/articles.json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "staticData": null,
+  "id": "ingest-loop-319636e8"
+}

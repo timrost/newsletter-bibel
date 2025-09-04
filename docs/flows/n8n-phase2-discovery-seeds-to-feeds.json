@@ -1,0 +1,149 @@
+{
+  "name": "Phase2: Discovery (Seeds → feeds.json)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "Manual",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -840,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Seed homepages (Hannover – erweiterbar)\nconst seeds = [\n  'https://www.hannover.de/',\n  'https://www.haz.de/',\n  'https://www.neuepresse.de/',\n  'https://www.region-hannover.de/',\n  'https://www.uni-hannover.de/',\n  'https://www.ihk.de/hannover/',\n];\nreturn seeds.map(u => ({ json: { seedUrl: u } }));\n"
+      },
+      "id": "Seeds",
+      "name": "Function: Seeds (homepages)",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$json[\"seedUrl\"]}}",
+        "responseFormat": "string",
+        "options": {
+          "fullResponse": false,
+          "followRedirect": true,
+          "ignoreResponseCode": true
+        }
+      },
+      "id": "HTTP",
+      "name": "HTTP Request: GET homepage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract RSS/Atom links from HTML head; add common guesses if none found.\nfunction extractFeeds(html, base) {\n  const out = new Set();\n  const linkRe = /<link[^>]+rel=[\"']alternate[\"'][^>]+href=[\"']([^\"']+)[\"'][^>]*type=[\"']([^\"']+)[\"'][^>]*>/gi;\n  let m;\n  while ((m = linkRe.exec(html)) !== null) {\n    const href = m[1]; const type = m[2].toLowerCase();\n    if (type.includes('rss') || type.includes('atom') || type.includes('xml')) {\n      try { out.add(new URL(href, base).toString()); } catch {}\n    }\n  }\n  if (out.size === 0) {\n    const guesses = ['feed','rss','feeds','rss.xml','atom.xml','index.xml'];\n    for (const g of guesses) {\n      try { out.add(new URL(g, base).toString()); } catch {}\n    }\n  }\n  return [...out];\n}\n\nconst out = [];\nfor (const it of items) {\n  const html = it.json || '';\n  const base = it.binary ? null : (it.params && it.params.url) || null;\n  // In n8n, our http node returned string in it.json; we also have previous seedUrl in paired item\n  const seed = $items(0,0)[0].json.seedUrl || null; // fallback\n  const feeds = extractFeeds(typeof it.json === 'string' ? it.json : (it.json.body || ''), seed);\n  for (const f of feeds) out.push({ json: { feedUrl: f, from: seed } });\n}\nreturn out;\n"
+      },
+      "id": "Extract",
+      "name": "Function: Extract Feeds",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Deduplicate and write feeds.json\nconst urls = new Set();\nfor (const it of items) {\n  const u = it.json.feedUrl;\n  if (u) urls.add(u);\n}\nconst arr = [...urls].sort();\nconst buf = Buffer.from(JSON.stringify({ feeds: arr }, null, 2), 'utf-8');\nconst bin = await this.helpers.prepareBinaryData(buf, 'feeds.json', 'application/json');\nreturn [{ json: { count: arr.length }, binary: { data: bin } }];\n"
+      },
+      "id": "Aggregate",
+      "name": "Function: Aggregate → feeds.json",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        80,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "fileName": "/data/config/feeds.json",
+        "binaryPropertyName": "data"
+      },
+      "id": "Write",
+      "name": "Write Binary File: /data/config/feeds.json",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        320,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Function: Seeds (homepages)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function: Seeds (homepages)": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request: GET homepage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: GET homepage": {
+      "main": [
+        [
+          {
+            "node": "Function: Extract Feeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function: Extract Feeds": {
+      "main": [
+        [
+          {
+            "node": "Function: Aggregate → feeds.json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function: Aggregate → feeds.json": {
+      "main": [
+        [
+          {
+            "node": "Write Binary File: /data/config/feeds.json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "staticData": null,
+  "id": "discovery-d594dae6"
+}

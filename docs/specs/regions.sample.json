@@ -1,0 +1,145 @@
+{
+  "regions": [
+    {
+      "id": "region-hannover",
+      "name": "Region Hannover",
+      "keywords": [
+        "hannover",
+        "region hannover",
+        "garbsen",
+        "langenhagen",
+        "seelze",
+        "ronnenberg",
+        "isernhagen",
+        "hemmingen",
+        "laatzen",
+        "pattensen",
+        "wunstorf",
+        "wedemark",
+        "springe",
+        "gehrden",
+        "wennigsen",
+        "burgdorf",
+        "barsinghausen",
+        "lehrte",
+        "bothfeld",
+        "linden",
+        "vahrenwald",
+        "list",
+        "misburg",
+        "anderten",
+        "ricklingen",
+        "döhren"
+      ],
+      "domainBoosts": {
+        "haz.de": 0.15,
+        "neuepresse.de": 0.15,
+        "hannover.de": 0.2,
+        "region-hannover.de": 0.2
+      },
+      "pathRules": [
+        {
+          "re": "(^|/)(lokales|stadt|region)/hannover(/|$)",
+          "w": 0.7
+        },
+        {
+          "re": "(^|/)hannover(/|$)",
+          "w": 0.6
+        },
+        {
+          "re": "(^|/)(garbsen|langenhagen|seelze|laatzen|ronnenberg|isernhagen|hemmingen|wedemark|pattensen|springe|gehrden|wunstorf)(/|$)",
+          "w": 0.5
+        }
+      ]
+    },
+    {
+      "id": "berlin",
+      "name": "Berlin",
+      "keywords": [
+        "berlin",
+        "charlottenburg",
+        "spandau",
+        "neukölln",
+        "kreuzberg",
+        "marzahn",
+        "lichtenberg",
+        "pankow",
+        "mitte",
+        "friedrichshain",
+        "tempelhof"
+      ],
+      "domainBoosts": {
+        "berlin.de": 0.2,
+        "berliner-zeitung.de": 0.15,
+        "tagesspiegel.de": 0.1
+      },
+      "pathRules": [
+        {
+          "re": "(^|/)(berlin|bezirke|stadtteile)(/|$)",
+          "w": 0.5
+        },
+        {
+          "re": "(^|/)(mitte|pankow|spandau|neukölln|kreuzberg|charlottenburg)(/|$)",
+          "w": 0.4
+        }
+      ]
+    },
+    {
+      "id": "hamburg",
+      "name": "Hamburg",
+      "keywords": [
+        "hamburg",
+        "altona",
+        "harburg",
+        "wandsbek",
+        "bergedorf",
+        "eimsbüttel",
+        "mitte"
+      ],
+      "domainBoosts": {
+        "hamburg.de": 0.2,
+        "hamburger-abendblatt.de": 0.15,
+        "mopo.de": 0.1
+      },
+      "pathRules": [
+        {
+          "re": "(^|/)hamburg(/|$)",
+          "w": 0.5
+        },
+        {
+          "re": "(^|/)(altona|harburg|wandsbek|bergedorf|eimsbüttel)(/|$)",
+          "w": 0.4
+        }
+      ]
+    },
+    {
+      "id": "muenchen",
+      "name": "München",
+      "keywords": [
+        "münchen",
+        "munich",
+        "schwabing",
+        "sendling",
+        "bogenhausen",
+        "ramersdorf",
+        "giesing",
+        "au-haidhausen"
+      ],
+      "domainBoosts": {
+        "muenchen.de": 0.2,
+        "abendzeitung-muenchen.de": 0.15,
+        "sueddeutsche.de": 0.1
+      },
+      "pathRules": [
+        {
+          "re": "(^|/)(muenchen|münchen|stadtteile)(/|$)",
+          "w": 0.5
+        },
+        {
+          "re": "(^|/)(schwabing|sendling|bogenhausen|ramersdorf|giesing|haidhausen)(/|$)",
+          "w": 0.4
+        }
+      ]
+    }
+  ]
+}

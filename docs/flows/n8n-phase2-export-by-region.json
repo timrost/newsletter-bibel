@@ -1,0 +1,136 @@
+{
+  "name": "Phase2: Export newsletter.json (?region=…)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "phase2/export",
+        "httpMethod": "GET",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "Webhook",
+      "name": "Webhook: GET /phase2/export?region=…",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "filePath": "/data/staging/articles.json",
+        "binaryPropertyName": "data"
+      },
+      "id": "Read",
+      "name": "Read Binary File: /data/staging/articles.json",
+      "type": "n8n-nodes-base.readBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "propertyName": "data"
+      },
+      "id": "ToText",
+      "name": "Move Binary Data: to text",
+      "type": "n8n-nodes-base.moveBinaryData",
+      "typeVersion": 1,
+      "position": [
+        40,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Build export; optional ?region=slug (e.g., region-hannover, berlin). Empty -> all.\nconst query = $json.query || {};\nconst wanted = ((query.region || '') + '').toLowerCase().trim();\nconst raw = items[0].json.data;\nlet articles = [];\ntry { articles = JSON.parse(raw); } catch {}\nconst norm = s => (s||'').toString().toLowerCase().replace(/\\s+/g,'-');\n\nlet filtered = articles;\nif (wanted) {\n  filtered = articles.filter(a => {\n    const det = norm(a.detected_region || '');\n    return det.includes(wanted) || det === wanted;\n  });\n}\n\n// Dedupe + sort\nconst seen = new Set();\nfiltered = filtered.filter(a => {\n  const key = a.url || a.id;\n  if (!key || seen.has(key)) return false;\n  seen.add(key);\n  return true;\n});\nconst toDate = v => { const d = new Date(v); return isNaN(d) ? 0 : d.getTime(); };\nfiltered.sort((a,b) => (b.region_score - a.region_score) || (toDate(b.published_at) - toDate(a.published_at)));\n\nreturn [{ json: {\n  export_version: \"1.1.0\",\n  generated_at: new Date().toISOString(),\n  region_filter: wanted || null,\n  count: filtered.length,\n  articles: filtered\n}}];\n"
+      },
+      "id": "Build",
+      "name": "Function: Build export (by region)",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        280,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "responseBody": "={{$json}}",
+        "responseCode": 200,
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "Respond",
+      "name": "Respond to Webhook (JSON)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        520,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook: GET /phase2/export?region=…": {
+      "main": [
+        [
+          {
+            "node": "Read Binary File: /data/staging/articles.json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Binary File: /data/staging/articles.json": {
+      "main": [
+        [
+          {
+            "node": "Move Binary Data: to text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move Binary Data: to text": {
+      "main": [
+        [
+          {
+            "node": "Function: Build export (by region)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function: Build export (by region)": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook (JSON)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "staticData": null,
+  "id": "export-by-region-077f3a49"
+}
