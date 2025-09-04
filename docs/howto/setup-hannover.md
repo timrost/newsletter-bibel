@@ -1,4 +1,4 @@
-# Setup Hannover MVP (n8n Flow)
+# Setup Hannover MVP (n8n‑Flow)
 
 (n8n‑Flow)
 
@@ -99,3 +99,5 @@ return items.filter(i => {
 ### Compliance‑Check (automatisiert)
 - Bei jedem Run wird **robots.txt** der HTML‑Quellen wöchentlich gecacht und nach Sperren (`GPTBot`, `CCBot`, `PerplexityBot`, `ClaudeBot`, `noai`, `tdm‑reservation`) gescannt. Falls Treffer → auf `rss_only` setzen oder komplett blocken.
 - Header‑Checks (optional): `X‑Robots‑Tag`, `tdm-reservation: 1`.
+
+---
