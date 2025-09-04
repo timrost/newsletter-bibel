@@ -10,15 +10,15 @@ Sie berücksichtigt UrhG (inkl. **§§ 87f–87h**, **§ 51** Zitatrecht, **
 
 ## 2. Grundsätze
 1) **Lizenz vor Nutzung**: Nur Bilder mit **klarer Nutzungsberechtigung** (eigene Werke, Stock‑Lizenz, CC mit zulässigen Bedingungen, Presse‑Kit/Offizielle Freigaben).  
-2) **Personenfotos**: Nur mit **Einwilligung/Model Release** oder gesetzlicher Ausnahme (KUG § 23) – besonders streng bei **Minderjährigen**.  
+2) **Personenfotos**: Nur mit **Einwilligung/Model Release** oder gesetzlicher Ausnahme (KUG § 23) – besonders streng bei **Minderjährigen**. citeturn0search4turn0search9  
 3) **Keine riskanten „Web‑Funde“**: Kein Hotlink/Screenshot fremder Seiten, keine „Google‑Bildersuche“-Übernahmen.  
-4) **Einbettung/Framing**: Nur, wenn **rechtmäßig veröffentlicht** **und** keine **Schutzmaßnahmen** umgangen werden; keine Links auf **offensichtlich rechtswidrige** Quellen.  
+4) **Einbettung/Framing**: Nur, wenn **rechtmäßig veröffentlicht** **und** keine **Schutzmaßnahmen** umgangen werden (**VG Bild‑Kunst**, C‑392/19). citeturn0search11  
 5) **Dokumentation**: Für jedes Bild gibt es einen **License‑Record** (Quelle, Rechtekette, Bedingungen, Ablage/Beleg).
 
 ## 3. Erlaubte Quellen (mit Muss‑Checks)
 **A) Eigene Produktion**  
 - Erlaubt, wenn Fotograf/Design im Projekt oder übertragen.  
-- **Bei Personen**: Einwilligung/Release (inkl. Zweck „Newsletter/Web“), Widerrufsweg dokumentiert.
+- **Bei Personen**: Einwilligung/Release (inkl. Zweck „Newsletter/Web“), Widerrufsweg dokumentiert. (KUG § 22/23) citeturn0search4turn0search9
 
 **B) Stock‑/Agentur‑Lizenzen (editorial/commercial)**  
 - Nur mit **passender Lizenzart** (Newsletter = idR **commercial use**).  
@@ -35,33 +35,38 @@ Sie berücksichtigt UrhG (inkl. **§§ 87f–87h**, **§ 51** Zitatrecht, **
 
 **Nicht zulässig**: Social‑Media‑Reposts als Bilddownload; **Screenshots** von Webseiten/Streams; Hotlinking fremder Bild‑CDNs.
 
-## 4. Personenfotos: KUG/DSGVO
-- **Grundsatz (§ 22 KUG)**: Veröffentlichung nur **mit Einwilligung** der abgebildeten Person(en).  
-- **Ausnahmen (§ 23 KUG)**: Personen der Zeitgeschichte, **Versammlungen/Aufzüge**, Beiwerk etc.; stets **Interessenabwägung**.  
-- **Newsletter/Marketing**: i. d. R. **Einwilligung** nötig (DSGVO **Art. 6(1)(a)** oder **berechtigte Interessen** **Art. 6(1)(f)** mit Widerspruchsmöglichkeit – **Vorsicht**).  
+## 4. Personenfotos: KUG/DSGVO (Kurzleitplanke)
+- **Grundsatz (§ 22 KUG)**: Veröffentlichung nur **mit Einwilligung** der abgebildeten Person(en). Ausnahmen (§ 23 KUG) stets **eng** prüfen (Zeitgeschichte, Versammlung, Beiwerk). citeturn0search4turn0search9  
+- **Newsletter/Marketing**: i. d. R. **Einwilligung** nötig (DSGVO **Art. 6(1)(a)**) oder strenge **Interessenabwägung** nach Art. 6(1)(f) mit **Widerspruchsmöglichkeit**.  
 - **Minderjährige**: Einwilligung Erziehungsberechtigte; sensibler Kontext vermeiden.  
-- **Ihre Rechte**: Entfernen auf Verlangen ermöglichen; Lösch‑/Widerspruchswege im Impressum/Datenschutz nennen.
+- **Rechte der Betroffenen**: Entfernen auf Verlangen ermöglichen; Lösch‑/Widerspruchswege im Impressum/Datenschutz nennen.
+
+### 4.1 Model‑Release – was wir speichern (ohne Muster)
+- **Identität** der abgebildeten Person(en) (mind. Name, Kontaktmöglichkeit).  
+- **Zweck/Räumlicher Geltungsbereich** (Newsletter/Web/Social; weltweit).  
+- **Dauer** der Nutzung / Widerrufsregelung.  
+- **Besonderheiten** (sensibler Kontext, Kinder).  
+- **Dokumente**: unterschriebene Einwilligung, Datum, Version des Release‑Textes; **Ablagepfad** im Repo/Drive.
 
 ## 5. Panoramafreiheit & Orte
-- **Öffentlicher Raum (§ 59 UrhG)**: Dauerhaft öffentliche Werke (Bauwerke/Skulpturen) dürfen abgebildet werden; **Innenräume/Hausrecht** gesondert.  
-- **Museen/Privatgelände**: Fotografieren oft **nur privat**; Veröffentlichung kann am **Hausrecht** scheitern → vorher Genehmigung einholen.  
-- **Ephemere Kunst** (z. B. verhüllte Objekte) fällt **nicht** unter § 59.
+- **Öffentlicher Raum (§ 59 UrhG)**: Dauerhaft öffentliche Werke (Bauwerke/Skulpturen) dürfen abgebildet werden; **Innenräume/Hausrecht** gesondert. citeturn0search8  
+- **Museen/Privatgelände**: Fotografieren oft **nur privat**; Veröffentlichung kann am **Hausrecht** scheitern → vorher Genehmigung einholen.
 
 ## 6. Zitat & Thumbnails
-- **Bildzitat (§ 51 UrhG)**: Nur **ausnahmsweise**, wenn **Belegfunktion** im **eigenen** Werk (Auseinandersetzung) – **keine** bloße Illustration/Eyecandy.  
+- **Bildzitat (§ 51 UrhG)**: Nur **ausnahmsweise**, wenn **Belegfunktion** im **eigenen** Werk (Auseinandersetzung) – **keine** bloße Illustration/Eyecandy. citeturn0search2  
 - **Thumbnails/Previews**: Eigene oder lizenzierte Vorschaubilder verwenden; **keine** fremden Thumbs kopieren.
 
 ## 7. Linking/Embedding (EU‑Rechtsprechung)
-- **Framing** rechtmäßig veröffentlichter Inhalte kann zulässig sein; **unzulässig**, wenn **wirksame Schutzmaßnahmen** gegen Framing umgangen würden (**VG Bild‑Kunst, C‑392/19**).  
-- **Linking** auf **rechtswidrig** hochgeladene Inhalte ist riskant; **Kommerziell Handelnde** müssen prüfen – sonst **öffentliche Wiedergabe** (**GS Media, C‑160/15**).
+- **Framing** rechtmäßig veröffentlichter Inhalte kann zulässig sein; **unzulässig**, wenn **wirksame Schutzmaßnahmen** gegen Framing umgangen würden (**VG Bild‑Kunst, C‑392/19**). citeturn0search11  
+- **Linking** auf **rechtswidrig** hochgeladene Inhalte ist riskant; **kommerziell Handelnde** müssen prüfen (**GS Media, C‑160/15**). citeturn0search10
 
 ## 8. TDM & Opt‑out (KI/Training)
-- **EU‑Urheberrecht (DSM‑RL 2019/790)**: TDM ist für Unternehmen **nur zulässig**, wenn **kein Opt‑out** besteht (maschinenlesbar).  
-- **Policy**: Für **Bilder** kein eigenständiges TDM; ggf. **Opt‑out** strikt respektieren (robots/meta‑Tags/Terms).
+- **EU‑Urheberrecht (DSM‑RL 2019/790)**: TDM ist zulässig, aber **Opt‑out** (maschinenlesbar) für nicht‑wissenschaftliche Zwecke zwingend zu beachten. citeturn1search3  
+- Policy: Für Bilder in diesem Projekt **kein** eigenes TDM; Opt‑outs (robots/meta/Terms) strikt respektieren.
 
 ## 9. Operative Umsetzung (DoR & Nachweise)
 **Metadaten je Bild (im CMS/Repo):**  
-`source_url`, `source_type` (own|stock|cc|press), `license_name`, `license_uri`, `credit_text`, `has_model_release` (bool), `restrictions` (string), `reviewer`, `review_date`.  
+`source_url`, `source_type` (own|stock|cc|press|genai), `license_name`, `license_uri`, `credit_text`, `has_model_release` (bool), `restrictions` (string), `reviewer`, `review_date`.  
 **Review‑Gate:** Kein Versand/Go‑Live ohne vollständigen **License‑Record**.  
 **Fallback:** Wenn ungeklärt → **kein Bild** oder eigenes **Icon/Pattern**.
 
@@ -73,11 +78,24 @@ Sie berücksichtigt UrhG (inkl. **§§ 87f–87h**, **§ 51** Zitatrecht, **
 
 ---
 
-## Quellen (Primärtexte & Urteile)
-- **KUG § 22/§ 23 (Recht am eigenen Bild)** – gesetze‑im‑internet.de  
-- **UrhG § 51 (Zitat)** · **§ 59 (Panoramafreiheit)** · **§ 72 (Lichtbilder)** – gesetze‑im‑internet.de  
-- **CJEU C‑392/19 – VG Bild‑Kunst / SPK (Framing & Schutzmaßnahmen)** – CURIA/EUR‑Lex  
-- **CJEU C‑160/15 – GS Media (Linking auf rechtswidrige Inhalte)** – CURIA  
-- **DSM‑Richtlinie 2019/790 (Art. 3/4 TDM; Opt‑out)** – EUR‑Lex  
-- **Creative Commons (CC BY/ND – Attribution/ND‑Verbot)** – creativecommons.org
+## 11. **KI‑generierte Bilder (GenAI)**
+**Rechtslage (EU‑Kernpunkte):**
+- **Urheberrecht/Originalität**: Schutz setzt **menschliche geistige Schöpfung** voraus (CJEU **Infopaq**; **Painer**). **Rein** KI‑erzeugte Bilder sind i. d. R. **nicht schutzfähig**; **AI‑assistierte** Werke können geschützt sein, wenn **eigene kreative Entscheidungen** prägend sind. citeturn0search8turn0search7  
+- **Transparenz/Labeling**: **EU‑AI‑Act Art. 50** verlangt **Kennzeichnung** für bestimmte **synthetische/alterierte Inhalte** (Deepfakes etc.); Anwendung **2 Jahre nach Inkrafttreten** (vorauss. ~2026). **Best Practice**: Schon jetzt **„KI‑generiert“** markieren. citeturn0search0turn0search5  
+- **Provenance**: Nachweisbarkeit durch **C2PA/Content Credentials** (Erzeugung/Änderungen als signierte Metadaten). **Empfehlung**: wenn möglich aktivieren. citeturn0search1turn0search11
 
+**Projekt‑Policy:**
+1) **Zulässig**, wenn die **Tool‑Lizenz** die Nutzung im Newsletter/Web erlaubt (kommerziell). **Dokumentiere**: Tool/Version, Datum, Prompt, (Seed/Job‑ID), Lizenz‑URL/Snapshot.  
+2) **Kennzeichnung** im Bild‑Credit oder Alt‑Text: „**KI‑generiert**“.  
+3) **C2PA**: Wenn Tool/Workflow es unterstützt, **Content Credentials** mitspeichern/weitergeben.  
+4) **Keine Persönlichkeits‑/Markenverletzungen**: Keine realistische Darstellung **identifizierbarer** Personen **ohne Einwilligung** (KUG/Allg. Persönlichkeitsrecht). Keine Logos/Markenzeichen ohne Lizenz. citeturn0search4  
+5) **Sensibler Kontext** (Politik, Gesundheit, Straftaten): Generative Bilder **nur mit eindeutiger Kennzeichnung** und **editorial review**; keine Irreführung.
+
+---
+
+## Quellen (Primärtexte/Standards/Urteile)
+- **KUG § 22/§ 23 (Recht am eigenen Bild)** – gesetze‑im‑internet.de. citeturn0search4turn0search9  
+- **UrhG § 51 (Zitat)** · **§ 59 (Panoramafreiheit)** · **§ 72 (Lichtbilder)** – gesetze‑im‑internet.de. citeturn0search2turn0search8turn0search3  
+- **CJEU C‑5/08 – Infopaq**; **C‑145/10 – Painer** (Originalität = persönliche geistige Schöpfung). citeturn0search8turn0search7  
+- **EU AI Act Art. 50 (Transparenz/Deepfakes)** + **Zeitplan** (≈ 2026). citeturn0search0turn0search5  
+- **C2PA / Content Credentials** (Provenance‑Standard). citeturn0search1turn0search6
