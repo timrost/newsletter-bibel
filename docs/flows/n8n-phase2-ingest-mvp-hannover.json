@@ -1,0 +1,146 @@
+{
+  "name": "Phase2: Ingest (Multi-Region MVP Hannover) → articles.json",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "Manual",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -520,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.haz.de/arc/outboundfeeds/rss/",
+        "options": {
+          "includeFullArticle": false
+        }
+      },
+      "id": "RSS",
+      "name": "RSS Feed Read",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Multi-Region scoring (Hannover-focused config as example)\nconst regions = [\n  {\n    id: \"region-hannover\",\n    keywords: ['hannover','region hannover','garbsen','langenhagen','seelze','ronnenberg','isernhagen','hemmingen','laatzen','pattensen','wunstorf','wedemark','springe','gehrden','wennigsen','burgdorf','barsinghausen','lehrte','bothfeld','linden','vahrenwald','list','misburg','anderten','ricklingen','döhren'],\n    domainBoosts: { 'haz.de': 0.15, 'neuepresse.de': 0.15, 'hannover.de': 0.2, 'region-hannover.de': 0.2 },\n    pathRules: [\n      { re: /(^|\\/)(lokales|stadt|region)\\/hannover(\\/|$)/, w: 0.7 },\n      { re: /(^|\\/)hannover(\\/|$)/, w: 0.6 },\n      { re: /(^|\\/)(garbsen|langenhagen|seelze|laatzen|ronnenberg|isernhagen|hemmingen|wedemark|pattensen|springe|gehrden|wunstorf)(\\/|$)/, w: 0.5 },\n    ]\n  }\n];\n\nconst KEYWORD_W = 0.3;\nconst BOOST = { 'hannover': 2.0, 'region hannover': 1.5 };\n\nreturn items.map(it => {\n  const j = it.json;\n  const text = [j.title, j.description, j.content, (j.categories||[]).join(' ')].filter(Boolean).join(' ').toLowerCase();\n  let domain = '', path = '';\n  try { const u = new URL(j.link||''); domain = (u.hostname||'').replace(/^www\\./,'').toLowerCase(); path = (u.pathname||'').toLowerCase(); } catch {}\n\n  const region_scores = {};\n  for (const r of regions) {\n    let s = 0;\n    if (r.domainBoosts && r.domainBoosts[domain]) s += r.domainBoosts[domain];\n    for (const k of (r.keywords||[])) {\n      const re = new RegExp(`\\\\b${k.replace(/[-/\\\\^$*+?.()|[\\]{}]/g, '\\\\$&')}\\\\b`, 'gi');\n      const hits = (text.match(re)||[]).length;\n      if (hits>0) s += hits * (BOOST[k] || 1.0) * KEYWORD_W;\n    }\n    for (const rule of (r.pathRules||[])) {\n      if (rule.re.test(path)) s += rule.w;\n    }\n    region_scores[r.id] = Math.max(0, Math.min(1, s));\n  }\n  let bestRegion = null, bestScore = 0;\n  for (const [rid, sc] of Object.entries(region_scores)) {\n    if (sc > bestScore) { bestRegion = rid; bestScore = sc; }\n  }\n  j.region_scores = Object.fromEntries(Object.entries(region_scores).map(([k,v])=>[k, Number(v.toFixed(3))]));\n  j.detected_region = bestRegion;\n  j.regionScore = Number(bestScore.toFixed(3));\n  return { json: j };\n});\n"
+      },
+      "id": "Score",
+      "name": "Function: Multi-Region Score",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -120,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "function pick(v, d=null) { return (v === undefined || v === null || v === '') ? d : v; }\nconst now = new Date().toISOString();\nreturn items.map(item => {\n  const j = item.json;\n  const link = pick(j.link, '');\n  const urlObj = (() => { try { return new URL(link); } catch { return null; } })();\n  const sourceDomain = urlObj ? urlObj.hostname.replace(/^www\\./,'') : '';\n  const id = link || `${pick(j.title,'')}_${pick(j.isoDate, now)}`;\n  return { json: {\n    id, title: pick(j.title,''), url: link, summary: pick(j.description,''),\n    content_text: pick(j.contentSnippet,''),\n    published_at: pick(j.isoDate, now), modified_at: pick(j.updated, pick(j.isoDate, now)),\n    author: pick(j.creator,''), source_id: sourceDomain, source_name: pick(j.feedTitle,''),\n    region_score: pick(j.regionScore,0), detected_region: pick(j.detected_region,null),\n    categories: pick(j.categories,[]), tags: [], images: [], language: \"de\",\n    created_at: now\n  }};\n});\n"
+      },
+      "id": "Map",
+      "name": "Function: Map → Article (+region)",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        120,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const arr = items.map(i => i.json);\nconst buf = Buffer.from(JSON.stringify(arr, null, 2), 'utf-8');\nconst binary = await this.helpers.prepareBinaryData(buf, 'articles.json', 'application/json');\nreturn [ { json: { count: arr.length }, binary: { data: binary } } ];\n"
+      },
+      "id": "Aggregate",
+      "name": "Function: Aggregate → Binary(JSON)",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        360,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "fileName": "/data/staging/articles.json",
+        "binaryPropertyName": "data"
+      },
+      "id": "Write",
+      "name": "Write Binary File: /data/staging/articles.json",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        600,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Feed Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Feed Read": {
+      "main": [
+        [
+          {
+            "node": "Function: Multi-Region Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function: Multi-Region Score": {
+      "main": [
+        [
+          {
+            "node": "Function: Map → Article (+region)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function: Map → Article (+region)": {
+      "main": [
+        [
+          {
+            "node": "Function: Aggregate → Binary(JSON)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function: Aggregate → Binary(JSON)": {
+      "main": [
+        [
+          {
+            "node": "Write Binary File: /data/staging/articles.json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "staticData": null,
+  "id": "ingest-mvp-6d442367"
+}
