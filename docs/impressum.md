@@ -1,6 +1,6 @@
 # Impressum
 
-Angaben gemäß § 5 TDDDG:
+Angaben gemäß § 5 DDG:
 
 **Tim Ole Rost**  
 Sperberweg 1  
