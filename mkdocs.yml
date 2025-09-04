@@ -46,6 +46,7 @@ nav:
   - Sprints:
       - Sprint 1 (Recht & Architektur): sprints/sprint1.md
       - Sprint 2 (Hannover MVP): sprints/sprint2.md
+  - Impressum: impressum.md
 extra:
   social:
     - icon: fontawesome/brands/github
