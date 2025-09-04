@@ -1,0 +1,179 @@
+{
+  "name": "Phase2: Ingest Regional News (RSS → articles.json)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "ManualTrigger1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -520,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://example.com/rss.xml",
+        "options": {
+          "includeFullArticle": false
+        }
+      },
+      "id": "RSSFeedRead1",
+      "name": "RSS Feed Read",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Compute a simple geo score for Region Hannover based on ADR‑0003 (simplified keywords)\n// The score is in [0,1] and depends on occurrences in title/summary/content/categories.\nconst regionKeywords = [\n  'hannover','region hannover','garbsen','laatzen','lehrte','lueden','linden','misburg','anderten','ricklingen','davenstedt','ahlem',\n  'heideviertel','bemerode','kirchrode','list','vahrenwald','sahlkamp','misburg-anderten','wettbergen','bothfeld','stoecken','vahrenheide',\n  'seelze','wedemark','wunstorf','wennigsen','gehrden','hemmingen','isernhagen','langenhagen','ronnenberg','pattensen','springe','ufe' // typo-safe list\n];\nconst boost = { 'hannover': 2.0, 'region hannover': 1.5, 'langenhagen': 1.2, 'seelze': 1.2, 'garbsen': 1.2 };\n\nreturn items.map(item => {\n  const j = item.json;\n  const text = [\n    j.title, j.description, j.content, j.link, (j.categories || []).join(' ')\n  ].filter(Boolean).join(' ').toLowerCase();\n\n  let raw = 0;\n  for (const k of regionKeywords) {\n    const re = new RegExp(`\\b${k.replace(/[-/\\\\^$*+?.()|[\\]{}]/g, '\\\\$&')}\\b`, 'gi');\n    const matches = (text.match(re) || []).length;\n    if (matches > 0) {\n      raw += matches * (boost[k] || 1.0);\n    }\n  }\n  const score = Math.min(1, raw / 5); // normalize (tweakable)\n  j.regionScore = Number(score.toFixed(3));\n  return { json: j };\n});\n"
+      },
+      "id": "FunctionGeoScore",
+      "name": "Function: Geo Score",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -120,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json[\"regionScore\"]}}",
+              "operation": "largerEqual",
+              "value2": 0.5
+            }
+          ]
+        }
+      },
+      "id": "IFRegionPass",
+      "name": "IF: regionScore >= 0.5",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        80,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Map RSS fields → Article schema (docs/specs/article.schema.json)\nfunction pick(v, d=null) { return (v === undefined || v === null || v === '') ? d : v; }\nconst now = new Date().toISOString();\n\nconst out = items.map(item => {\n  const j = item.json;\n  const link = pick(j.link, '');\n  const urlObj = (() => { try { return new URL(link); } catch { return null; } })();\n  const sourceDomain = urlObj ? urlObj.hostname : '';\n\n  // simple id: use link as id if present, else title+published\n  const id = link || `${pick(j.title,'')}_${pick(j.isoDate, now)}`;\n\n  return {\n    json: {\n      id,\n      title: pick(j.title, ''),\n      url: link,\n      summary: pick(j.description, ''),\n      content_text: pick(j.contentSnippet, ''),\n      published_at: pick(j.isoDate, now),\n      modified_at: pick(j.updated, pick(j.isoDate, now)),\n      author: pick(j.creator, ''),\n      source_id: sourceDomain,\n      source_name: pick(j.feedTitle, ''),\n      region_score: pick(j.regionScore, 0),\n      categories: pick(j.categories, []),\n      tags: [],\n      images: [],\n      language: \"de\",\n      detected_region: \"Hannover\",\n      created_at: now\n    }\n  };\n});\n\nreturn out;\n"
+      },
+      "id": "FunctionMapArticle",
+      "name": "Function: Map → Article",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        300,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Aggregate all items into a single JSON array and attach as binary for writing to /data/staging/articles.json\nconst arr = items.map(i => i.json);\nconst buf = Buffer.from(JSON.stringify(arr, null, 2), 'utf-8');\n\nconst binary = await this.helpers.prepareBinaryData(buf, 'articles.json', 'application/json');\nreturn [ { json: { count: arr.length }, binary: { data: binary } } ];\n"
+      },
+      "id": "FunctionAggregate",
+      "name": "Function: Aggregate → Binary(JSON)",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        520,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "fileName": "/data/staging/articles.json",
+        "binaryPropertyName": "data"
+      },
+      "id": "WriteBinaryFile1",
+      "name": "Write Binary File: /data/staging/articles.json",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        760,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Feed Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Feed Read": {
+      "main": [
+        [
+          {
+            "node": "Function: Geo Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function: Geo Score": {
+      "main": [
+        [
+          {
+            "node": "IF: regionScore >= 0.5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: regionScore >= 0.5": {
+      "main": [
+        [
+          {
+            "node": "Function: Map → Article",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Function: Map → Article": {
+      "main": [
+        [
+          {
+            "node": "Function: Aggregate → Binary(JSON)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Function: Aggregate → Binary(JSON)": {
+      "main": [
+        [
+          {
+            "node": "Write Binary File: /data/staging/articles.json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "staticData": null,
+  "id": "phase2-ingest-69083caa"
+}

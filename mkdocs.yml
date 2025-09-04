@@ -53,9 +53,11 @@ nav:
       - ConsentLog Schema: specs/consentlog.schema.json
       - Newsletter Beispiel: specs/newsletter.example.json
   - Flows:
+      - Übersicht: flows/README.md
       - n8n Ingest (RSS → Article): flows/n8n-phase2-ingest.json
       - n8n Export (→ Newsletter): flows/n8n-phase2-export.json
   - Scripts:
+      - Übersicht: scripts/README.md
       - GitHub Commit Step: scripts/github-commit-step.md
   - Sprints:
       - Sprint 1 (Recht & Architektur): sprints/sprint1.md
