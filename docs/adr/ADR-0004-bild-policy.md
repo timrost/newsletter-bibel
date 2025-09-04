@@ -10,15 +10,15 @@ Sie berücksichtigt UrhG (inkl. **§§ 87f–87h**, **§ 51** Zitatrecht, **
 
 ## 2. Grundsätze
 1) **Lizenz vor Nutzung**: Nur Bilder mit **klarer Nutzungsberechtigung** (eigene Werke, Stock‑Lizenz, CC mit zulässigen Bedingungen, Presse‑Kit/Offizielle Freigaben).  
-2) **Personenfotos**: Nur mit **Einwilligung/Model Release** oder gesetzlicher Ausnahme (KUG § 23) – besonders streng bei **Minderjährigen**. citeturn0search4turn0search9  
+2) **Personenfotos**: Nur mit **Einwilligung/Model Release** oder gesetzlicher Ausnahme (KUG § 23) – besonders streng bei **Minderjährigen**.   
 3) **Keine riskanten „Web‑Funde“**: Kein Hotlink/Screenshot fremder Seiten, keine „Google‑Bildersuche“-Übernahmen.  
-4) **Einbettung/Framing**: Nur, wenn **rechtmäßig veröffentlicht** **und** keine **Schutzmaßnahmen** umgangen werden (**VG Bild‑Kunst**, C‑392/19). citeturn0search11  
+4) **Einbettung/Framing**: Nur, wenn **rechtmäßig veröffentlicht** **und** keine **Schutzmaßnahmen** umgangen werden (**VG Bild‑Kunst**, C‑392/19).   
 5) **Dokumentation**: Für jedes Bild gibt es einen **License‑Record** (Quelle, Rechtekette, Bedingungen, Ablage/Beleg).
 
 ## 3. Erlaubte Quellen (mit Muss‑Checks)
 **A) Eigene Produktion**  
 - Erlaubt, wenn Fotograf/Design im Projekt oder übertragen.  
-- **Bei Personen**: Einwilligung/Release (inkl. Zweck „Newsletter/Web“), Widerrufsweg dokumentiert. (KUG § 22/23) citeturn0search4turn0search9
+- **Bei Personen**: Einwilligung/Release (inkl. Zweck „Newsletter/Web“), Widerrufsweg dokumentiert. (KUG § 22/23) 
 
 **B) Stock‑/Agentur‑Lizenzen (editorial/commercial)**  
 - Nur mit **passender Lizenzart** (Newsletter = idR **commercial use**).  
@@ -36,7 +36,7 @@ Sie berücksichtigt UrhG (inkl. **§§ 87f–87h**, **§ 51** Zitatrecht, **
 **Nicht zulässig**: Social‑Media‑Reposts als Bilddownload; **Screenshots** von Webseiten/Streams; Hotlinking fremder Bild‑CDNs.
 
 ## 4. Personenfotos: KUG/DSGVO (Kurzleitplanke)
-- **Grundsatz (§ 22 KUG)**: Veröffentlichung nur **mit Einwilligung** der abgebildeten Person(en). Ausnahmen (§ 23 KUG) stets **eng** prüfen (Zeitgeschichte, Versammlung, Beiwerk). citeturn0search4turn0search9  
+- **Grundsatz (§ 22 KUG)**: Veröffentlichung nur **mit Einwilligung** der abgebildeten Person(en). Ausnahmen (§ 23 KUG) stets **eng** prüfen (Zeitgeschichte, Versammlung, Beiwerk).   
 - **Newsletter/Marketing**: i. d. R. **Einwilligung** nötig (DSGVO **Art. 6(1)(a)**) oder strenge **Interessenabwägung** nach Art. 6(1)(f) mit **Widerspruchsmöglichkeit**.  
 - **Minderjährige**: Einwilligung Erziehungsberechtigte; sensibler Kontext vermeiden.  
 - **Rechte der Betroffenen**: Entfernen auf Verlangen ermöglichen; Lösch‑/Widerspruchswege im Impressum/Datenschutz nennen.
@@ -49,19 +49,19 @@ Sie berücksichtigt UrhG (inkl. **§§ 87f–87h**, **§ 51** Zitatrecht, **
 - **Dokumente**: unterschriebene Einwilligung, Datum, Version des Release‑Textes; **Ablagepfad** im Repo/Drive.
 
 ## 5. Panoramafreiheit & Orte
-- **Öffentlicher Raum (§ 59 UrhG)**: Dauerhaft öffentliche Werke (Bauwerke/Skulpturen) dürfen abgebildet werden; **Innenräume/Hausrecht** gesondert. citeturn0search8  
+- **Öffentlicher Raum (§ 59 UrhG)**: Dauerhaft öffentliche Werke (Bauwerke/Skulpturen) dürfen abgebildet werden; **Innenräume/Hausrecht** gesondert.   
 - **Museen/Privatgelände**: Fotografieren oft **nur privat**; Veröffentlichung kann am **Hausrecht** scheitern → vorher Genehmigung einholen.
 
 ## 6. Zitat & Thumbnails
-- **Bildzitat (§ 51 UrhG)**: Nur **ausnahmsweise**, wenn **Belegfunktion** im **eigenen** Werk (Auseinandersetzung) – **keine** bloße Illustration/Eyecandy. citeturn0search2  
+- **Bildzitat (§ 51 UrhG)**: Nur **ausnahmsweise**, wenn **Belegfunktion** im **eigenen** Werk (Auseinandersetzung) – **keine** bloße Illustration/Eyecandy.   
 - **Thumbnails/Previews**: Eigene oder lizenzierte Vorschaubilder verwenden; **keine** fremden Thumbs kopieren.
 
 ## 7. Linking/Embedding (EU‑Rechtsprechung)
-- **Framing** rechtmäßig veröffentlichter Inhalte kann zulässig sein; **unzulässig**, wenn **wirksame Schutzmaßnahmen** gegen Framing umgangen würden (**VG Bild‑Kunst, C‑392/19**). citeturn0search11  
-- **Linking** auf **rechtswidrig** hochgeladene Inhalte ist riskant; **kommerziell Handelnde** müssen prüfen (**GS Media, C‑160/15**). citeturn0search10
+- **Framing** rechtmäßig veröffentlichter Inhalte kann zulässig sein; **unzulässig**, wenn **wirksame Schutzmaßnahmen** gegen Framing umgangen würden (**VG Bild‑Kunst, C‑392/19**).   
+- **Linking** auf **rechtswidrig** hochgeladene Inhalte ist riskant; **kommerziell Handelnde** müssen prüfen (**GS Media, C‑160/15**). 
 
 ## 8. TDM & Opt‑out (KI/Training)
-- **EU‑Urheberrecht (DSM‑RL 2019/790)**: TDM ist zulässig, aber **Opt‑out** (maschinenlesbar) für nicht‑wissenschaftliche Zwecke zwingend zu beachten. citeturn1search3  
+- **EU‑Urheberrecht (DSM‑RL 2019/790)**: TDM ist zulässig, aber **Opt‑out** (maschinenlesbar) für nicht‑wissenschaftliche Zwecke zwingend zu beachten.   
 - Policy: Für Bilder in diesem Projekt **kein** eigenes TDM; Opt‑outs (robots/meta/Terms) strikt respektieren.
 
 ## 9. Operative Umsetzung (DoR & Nachweise)
@@ -80,22 +80,22 @@ Sie berücksichtigt UrhG (inkl. **§§ 87f–87h**, **§ 51** Zitatrecht, **
 
 ## 11. **KI‑generierte Bilder (GenAI)**
 **Rechtslage (EU‑Kernpunkte):**
-- **Urheberrecht/Originalität**: Schutz setzt **menschliche geistige Schöpfung** voraus (CJEU **Infopaq**; **Painer**). **Rein** KI‑erzeugte Bilder sind i. d. R. **nicht schutzfähig**; **AI‑assistierte** Werke können geschützt sein, wenn **eigene kreative Entscheidungen** prägend sind. citeturn0search8turn0search7  
-- **Transparenz/Labeling**: **EU‑AI‑Act Art. 50** verlangt **Kennzeichnung** für bestimmte **synthetische/alterierte Inhalte** (Deepfakes etc.); Anwendung **2 Jahre nach Inkrafttreten** (vorauss. ~2026). **Best Practice**: Schon jetzt **„KI‑generiert“** markieren. citeturn0search0turn0search5  
-- **Provenance**: Nachweisbarkeit durch **C2PA/Content Credentials** (Erzeugung/Änderungen als signierte Metadaten). **Empfehlung**: wenn möglich aktivieren. citeturn0search1turn0search11
+- **Urheberrecht/Originalität**: Schutz setzt **menschliche geistige Schöpfung** voraus (CJEU **Infopaq**; **Painer**). **Rein** KI‑erzeugte Bilder sind i. d. R. **nicht schutzfähig**; **AI‑assistierte** Werke können geschützt sein, wenn **eigene kreative Entscheidungen** prägend sind.   
+- **Transparenz/Labeling**: **EU‑AI‑Act Art. 50** verlangt **Kennzeichnung** für bestimmte **synthetische/alterierte Inhalte** (Deepfakes etc.); Anwendung **2 Jahre nach Inkrafttreten** (vorauss. ~2026). **Best Practice**: Schon jetzt **„KI‑generiert“** markieren.   
+- **Provenance**: Nachweisbarkeit durch **C2PA/Content Credentials** (Erzeugung/Änderungen als signierte Metadaten). **Empfehlung**: wenn möglich aktivieren. 
 
 **Projekt‑Policy:**
 1) **Zulässig**, wenn die **Tool‑Lizenz** die Nutzung im Newsletter/Web erlaubt (kommerziell). **Dokumentiere**: Tool/Version, Datum, Prompt, (Seed/Job‑ID), Lizenz‑URL/Snapshot.  
 2) **Kennzeichnung** im Bild‑Credit oder Alt‑Text: „**KI‑generiert**“.  
 3) **C2PA**: Wenn Tool/Workflow es unterstützt, **Content Credentials** mitspeichern/weitergeben.  
-4) **Keine Persönlichkeits‑/Markenverletzungen**: Keine realistische Darstellung **identifizierbarer** Personen **ohne Einwilligung** (KUG/Allg. Persönlichkeitsrecht). Keine Logos/Markenzeichen ohne Lizenz. citeturn0search4  
+4) **Keine Persönlichkeits‑/Markenverletzungen**: Keine realistische Darstellung **identifizierbarer** Personen **ohne Einwilligung** (KUG/Allg. Persönlichkeitsrecht). Keine Logos/Markenzeichen ohne Lizenz.   
 5) **Sensibler Kontext** (Politik, Gesundheit, Straftaten): Generative Bilder **nur mit eindeutiger Kennzeichnung** und **editorial review**; keine Irreführung.
 
 ---
 
 ## Quellen (Primärtexte/Standards/Urteile)
-- **KUG § 22/§ 23 (Recht am eigenen Bild)** – gesetze‑im‑internet.de. citeturn0search4turn0search9  
-- **UrhG § 51 (Zitat)** · **§ 59 (Panoramafreiheit)** · **§ 72 (Lichtbilder)** – gesetze‑im‑internet.de. citeturn0search2turn0search8turn0search3  
-- **CJEU C‑5/08 – Infopaq**; **C‑145/10 – Painer** (Originalität = persönliche geistige Schöpfung). citeturn0search8turn0search7  
-- **EU AI Act Art. 50 (Transparenz/Deepfakes)** + **Zeitplan** (≈ 2026). citeturn0search0turn0search5  
-- **C2PA / Content Credentials** (Provenance‑Standard). citeturn0search1turn0search6
+- **KUG § 22/§ 23 (Recht am eigenen Bild)** – gesetze‑im‑internet.de.   
+- **UrhG § 51 (Zitat)** · **§ 59 (Panoramafreiheit)** · **§ 72 (Lichtbilder)** – gesetze‑im‑internet.de.   
+- **CJEU C‑5/08 – Infopaq**; **C‑145/10 – Painer** (Originalität = persönliche geistige Schöpfung).   
+- **EU AI Act Art. 50 (Transparenz/Deepfakes)** + **Zeitplan** (≈ 2026).   
+- **C2PA / Content Credentials** (Provenance‑Standard). 
