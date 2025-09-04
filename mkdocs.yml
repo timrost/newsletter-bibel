@@ -10,6 +10,7 @@ theme:
     - navigation.tabs
     - navigation.sections
     - navigation.expand
+    - navigation.indexes
     - search.suggest
     - search.highlight
     - content.code.copy
@@ -48,6 +49,7 @@ nav:
       - Phase 2 Readme: runbooks/phase2-readme.md
       - Pilotplan Phase 2: runbooks/phase2-pilot.md
   - Specs:
+      - Übersicht: specs/index.md
       - Article Schema: specs/article.schema.json
       - SourceProfile Schema: specs/sourceprofile.schema.json
       - ConsentLog Schema: specs/consentlog.schema.json
