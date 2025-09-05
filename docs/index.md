@@ -17,7 +17,11 @@ Chats dienen nur zur Erarbeitung – relevante Ergebnisse landen **immer hier**.
   "Repo": "https://github.com/timrost/newsletter-bibel",
   "Phase": "2 – Technik (nach Doku-Phase abgeschlossen am 2025-09-04)",
   "Ziel dieses Chats": "<Thema>",
-  "Deliverables": ["<…>"],
+  "Deliverables": [
+    "n8n-Flows (Discovery 3-Hop, Ingest, Export) – Import & Test",
+    "Repo-Update (Runbook, How-to, mkdocs.yml)",
+    "Pilot-Check: feeds.json → articles.json → newsletter.json"
+  ],
   "Arbeitsweise": {
     "Uploads": "GitHub-Weboberfläche (Option A)",
     "Master-Versionen": "haben Vorrang vor Kurzfassungen",
