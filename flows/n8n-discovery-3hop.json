@@ -1,0 +1,491 @@
+{
+  "name": "Discovery – 3-Hop Feed Finder (Hannover MVP)",
+  "nodes": [
+    {
+      "parameters": {
+        "functionCode": "const seeds=[\n'https://www.hannover.de/',\n'https://www.haz.de/',\n'https://www.neuepresse.de/',\n'https://www.region-hannover.de/',\n'https://www.uni-hannover.de/',\n'https://www.ihk.de/hannover/'\n];\nreturn seeds.map(u=>({json:{seedUrl:u}}));"
+      },
+      "id": "Seeds",
+      "name": "Function: Seeds (homepages)",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        120,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$json[\"seedUrl\"]}}",
+        "responseFormat": "string",
+        "options": {
+          "redirect": {
+            "followRedirects": true,
+            "maxRedirects": 15
+          }
+        },
+        "sendHeaders": true,
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0"
+            }
+          ]
+        }
+      },
+      "id": "HttpHome",
+      "name": "HTTP Request: GET homepage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        340,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "position",
+        "join": "left"
+      },
+      "id": "MergeSeedGet",
+      "name": "Merge (Seeds + GET)",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 1,
+      "position": [
+        540,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// === Extract Feeds (für 1st/2nd/3rd Hop identisch) =======================\n// Liefert feedUrl (echte Feeds) ODER followUrl (RSS-Übersichts-/Infoseiten).\n// - /rss, /rss/, /services/rss => followUrl (nie feedUrl)\n// - HAZ/NP /arc/outboundfeeds/rss/... => feedUrl (via <a>, <link> oder Rohtext)\n// - Nur http/https-Links werden emittiert (kein tel:, mailto:, javascript:)\n\n// -- helpers ---------------------------------------------------------------\nfunction decodeHtml(s) {\n  return (s || '')\n    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')\n    .replace(/&quot;/g, '\"').replace(/&#39;/g, \"'\");\n}\nfunction splitBase(base) {\n  base = (base || '').trim();\n  const m = base.match(/^(https?:)\\/\\/([^\\/?#]+)([^?#]*)?/i);\n  if (!m) return null;\n  const protocol = m[1], host = m[2];\n  let path = m[3] || '/', dir = path.endsWith('/') ? path : path.replace(/[^\\/]*$/, '');\n  if (!dir.startsWith('/')) dir = '/' + dir;\n  return { protocol, host, dir, origin: protocol + '//' + host };\n}\nfunction abs(href, base) {\n  href = decodeHtml((href || '').trim());\n  if (!href) return null;\n  if (/^[a-zA-Z][a-zA-Z0-9+\\-.]*:/.test(href)) return href; // already absolute (incl. tel:, mailto:)\n  if (href.startsWith('//')) { const b = splitBase(base); return (b ? b.protocol : 'https:') + href; }\n  const b = splitBase(base); if (!b) return null;\n  if (href.startsWith('/')) return b.origin + href;\n  let h = href;\n  while (h.startsWith('../')) { h = h.slice(3); b.dir = b.dir.replace(/[^\\/]+\\/?$/, ''); if (!b.dir) b.dir = '/'; }\n  if (h.startsWith('./')) h = h.slice(2);\n  return b.origin + (b.dir.endsWith('/') ? b.dir : b.dir + '/') + h;\n}\nfunction isHttp(u) { return /^https?:\\/\\//i.test(u || ''); }\nfunction htmlOf(j) {\n  if (typeof j === 'string') return j;\n  if (j && typeof j.data === 'string') return j.data;\n  if (j && typeof j.body === 'string') return j.body;\n  return '';\n}\nfunction getBase(html, hint) {\n  let base = hint || '';\n  const m = html.match(/<base[^>]+href\\s*=\\s*[\"']?([^\"'>\\s]+)[\"']?[^>]*>/i);\n  if (m && m[1]) { const u = abs(m[1], hint); if (u) base = u; }\n  return base;\n}\nfunction parseAttrs(tag) {\n  const out = {}; const re = /([a-zA-Z_:][-a-zA-Z0-9_:.]*)\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s\"'>]+))/g;\n  let m; while ((m = re.exec(tag)) !== null) { const k = m[1].toLowerCase(); out[k] = (m[2] ?? m[3] ?? m[4] ?? ''); }\n  return out;\n}\nconst FEED_TYPES = [\n  'application/rss+xml','application/atom+xml','application/rdf+xml',\n  'text/xml','application/xml','application/feed+json','application/json'\n];\n\n// --- Klassifizierer -------------------------------------------------------\nfunction isRealFeedUrl(u) {\n  const h = (u || '').toLowerCase();\n  const hasFeedExt = /\\.(rss|xml|atom|rdf)(?:$|\\?)/.test(h);\n  const wpFeed     = h.endsWith('/feed') || h.includes('/feed/');\n  const hazArc     = h.includes('/outboundfeeds/rss'); // HAZ/NP & Co.\n  const jsonFeed   = /\\.json(?:$|\\?)/.test(h) || /(?:^|[?&])feed=(json|rss)/.test(h);\n  return hasFeedExt || wpFeed || hazArc || jsonFeed;\n}\nfunction isRssIndexPage(u) {\n  const h = (u || '').toLowerCase();\n  return (\n    h.endsWith('/rss') || h.endsWith('/rss/') ||\n    h.includes('/rss-feeds') || h.includes('/rssfeeds') ||\n    h.includes('/services/rss') || h.includes('/service/rss') ||\n    h.includes('/hilfe/rss')\n  );\n}\n\n// --- Parser ---------------------------------------------------------------\nfunction fromHead(html, base) {\n  const out = []; const linkRe = /<link\\b[^>]*>/gi; let m;\n  while ((m = linkRe.exec(html)) !== null) {\n    const a = parseAttrs(m[0]); const rel = (a.rel || '').toLowerCase();\n    const type = (a.type || '').toLowerCase();\n    const href = a.href ? abs(a.href, base) : null; if (!href || !isHttp(href)) continue;\n    const relTokens = rel.split(/\\s+/).filter(Boolean);\n    const relIsFeed = relTokens.includes('alternate') || relTokens.includes('feed');\n    if (\n      (relIsFeed && (FEED_TYPES.includes(type) || type.includes('rss') || type.includes('atom') || type.includes('xml') || type.includes('json'))) ||\n      (relIsFeed && isRealFeedUrl(href)) ||\n      (!rel && (type.includes('rss') || type.includes('atom') || type.includes('xml') || type.includes('json')))\n    ) {\n      const isJson = type.includes('json') || /\\.json(?:$|\\?)/.test(href.toLowerCase());\n      out.push({ feedUrl: href, format: isJson ? 'json' : (type || 'xml') });\n    } else if (relIsFeed && isRssIndexPage(href)) {\n      out.push({ followUrl: href });\n    }\n  }\n  return out;\n}\nfunction fromBody(html, base) {\n  const out = []; const aRe = /<a\\b[^>]*>[\\s\\S]*?<\\/a>/gi; let m;\n  while ((m = aRe.exec(html)) !== null) {\n    const tag = m[0]; const a = parseAttrs(tag);\n    const href = a.href ? abs(a.href, base) : null; if (!href || !isHttp(href)) continue;\n    const inner = tag.match(/>([\\s\\S]*?)<\\/a>/i);\n    const txt = (inner ? inner[1] : '').replace(/\\s+/g, ' ').trim().toLowerCase();\n    const low = href.toLowerCase();\n    // bewusst KEIN 'abo'/'abonnieren' → führte zu tel:-Treffern\n    const mentions = /\\brss\\b|\\bfeed(s)?\\b|\\batom\\b|\\bxml\\b/.test(txt);\n    if (isRealFeedUrl(href) && !low.endsWith('.html') && !low.endsWith('.htm')) {\n      out.push({ feedUrl: href });\n    } else if (isRssIndexPage(href) || mentions) {\n      out.push({ followUrl: href });\n    }\n  }\n  return out;\n}\n// Rohtext-Scan für /arc/outboundfeeds/rss/ (auch ohne <a>/<link>)\nfunction fromAnyText(html, base) {\n  const out = [];\n  let m;\n  const reAbs = /https?:\\/\\/[^\\s\"'<>]*\\/arc\\/outboundfeeds\\/rss\\/[^\\s\"'<>]*/gi;\n  while ((m = reAbs.exec(html)) !== null) {\n    const u = m[0];\n    if (isHttp(u) && isRealFeedUrl(u)) out.push({ feedUrl: u });\n  }\n  const reRel = /(?:[\"'\\s(]|^)(\\/(?:[^\"'<>\\s)]*?)\\/arc\\/outboundfeeds\\/rss\\/[^\"'<>\\s)]*)/gi;\n  while ((m = reRel.exec(html)) !== null) {\n    const u = abs(m[1], base);\n    if (isHttp(u) && isRealFeedUrl(u)) out.push({ feedUrl: u });\n  }\n  return out;\n}\n\n// --- main ----------------------------------------------------------------\nconst results = [];\nfor (const it of items) {\n  const j = it.json || {};\n  const seed = j.seedUrl || '';\n  const html = htmlOf(j);\n  const baseHint = j.followUrl || j.seedUrl || '';\n  const base = getBase(html, baseHint);\n\n  const seen = new Set();\n  const add = (obj) => {\n    const val = (obj.feedUrl || obj.followUrl || '').trim();\n    if (!val || !isHttp(val)) return;\n    const key = val.toLowerCase();\n    if (!seen.has(key)) { seen.add(key); results.push({ ...obj, from: seed }); }\n  };\n\n  for (const f of fromHead(html, base)) add(f);\n  for (const f of fromBody(html, base)) add(f);\n  for (const f of fromAnyText(html, base)) add(f);\n\n  if (results.length === 0) {\n    const candidates = [\n      '/rss','/rss/','/feed','/feed/','/feeds','/feeds/','/rss.xml','/atom.xml','/index.xml',\n      '/blog/feed','/blog/rss','/services/rss','/services/rss/','/news/feed','/?feed=rss2',\n      '/service/rss','/service/rss/','/rss-feeds','/rss-feeds/','/hilfe/rss','/hilfe/rss/','/service/feeds','/service/feeds/'\n    ];\n    for (const g of candidates) { const u = abs(g, base); if (isHttp(u)) add({ followUrl: u }); }\n  }\n}\nreturn this.helpers.returnJsonArray(results);\n"
+      },
+      "id": "Extract1",
+      "name": "Extract1",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        740,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"feedUrl\"]}}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "IF feedUrl 1",
+      "name": "IF feedUrl 1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        940,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"followUrl\"]}}",
+              "operation": "startsWith",
+              "value2": "http"
+            }
+          ]
+        }
+      },
+      "id": "IF follow http 1",
+      "name": "IF follow http 1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        940,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$json[\"followUrl\"]}}",
+        "responseFormat": "string",
+        "options": {
+          "redirect": {
+            "followRedirects": true,
+            "maxRedirects": 15
+          }
+        },
+        "sendHeaders": true,
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0"
+            }
+          ]
+        }
+      },
+      "id": "HTTP Follow 2",
+      "name": "HTTP Follow 2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// === Extract Feeds (für 1st/2nd/3rd Hop identisch) =======================\n// Liefert feedUrl (echte Feeds) ODER followUrl (RSS-Übersichts-/Infoseiten).\n// - /rss, /rss/, /services/rss => followUrl (nie feedUrl)\n// - HAZ/NP /arc/outboundfeeds/rss/... => feedUrl (via <a>, <link> oder Rohtext)\n// - Nur http/https-Links werden emittiert (kein tel:, mailto:, javascript:)\n\n// -- helpers ---------------------------------------------------------------\nfunction decodeHtml(s) {\n  return (s || '')\n    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')\n    .replace(/&quot;/g, '\"').replace(/&#39;/g, \"'\");\n}\nfunction splitBase(base) {\n  base = (base || '').trim();\n  const m = base.match(/^(https?:)\\/\\/([^\\/?#]+)([^?#]*)?/i);\n  if (!m) return null;\n  const protocol = m[1], host = m[2];\n  let path = m[3] || '/', dir = path.endsWith('/') ? path : path.replace(/[^\\/]*$/, '');\n  if (!dir.startsWith('/')) dir = '/' + dir;\n  return { protocol, host, dir, origin: protocol + '//' + host };\n}\nfunction abs(href, base) {\n  href = decodeHtml((href || '').trim());\n  if (!href) return null;\n  if (/^[a-zA-Z][a-zA-Z0-9+\\-.]*:/.test(href)) return href; // already absolute (incl. tel:, mailto:)\n  if (href.startsWith('//')) { const b = splitBase(base); return (b ? b.protocol : 'https:') + href; }\n  const b = splitBase(base); if (!b) return null;\n  if (href.startsWith('/')) return b.origin + href;\n  let h = href;\n  while (h.startsWith('../')) { h = h.slice(3); b.dir = b.dir.replace(/[^\\/]+\\/?$/, ''); if (!b.dir) b.dir = '/'; }\n  if (h.startsWith('./')) h = h.slice(2);\n  return b.origin + (b.dir.endsWith('/') ? b.dir : b.dir + '/') + h;\n}\nfunction isHttp(u) { return /^https?:\\/\\//i.test(u || ''); }\nfunction htmlOf(j) {\n  if (typeof j === 'string') return j;\n  if (j && typeof j.data === 'string') return j.data;\n  if (j && typeof j.body === 'string') return j.body;\n  return '';\n}\nfunction getBase(html, hint) {\n  let base = hint || '';\n  const m = html.match(/<base[^>]+href\\s*=\\s*[\"']?([^\"'>\\s]+)[\"']?[^>]*>/i);\n  if (m && m[1]) { const u = abs(m[1], hint); if (u) base = u; }\n  return base;\n}\nfunction parseAttrs(tag) {\n  const out = {}; const re = /([a-zA-Z_:][-a-zA-Z0-9_:.]*)\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s\"'>]+))/g;\n  let m; while ((m = re.exec(tag)) !== null) { const k = m[1].toLowerCase(); out[k] = (m[2] ?? m[3] ?? m[4] ?? ''); }\n  return out;\n}\nconst FEED_TYPES = [\n  'application/rss+xml','application/atom+xml','application/rdf+xml',\n  'text/xml','application/xml','application/feed+json','application/json'\n];\n\n// --- Klassifizierer -------------------------------------------------------\nfunction isRealFeedUrl(u) {\n  const h = (u || '').toLowerCase();\n  const hasFeedExt = /\\.(rss|xml|atom|rdf)(?:$|\\?)/.test(h);\n  const wpFeed     = h.endsWith('/feed') || h.includes('/feed/');\n  const hazArc     = h.includes('/outboundfeeds/rss'); // HAZ/NP & Co.\n  const jsonFeed   = /\\.json(?:$|\\?)/.test(h) || /(?:^|[?&])feed=(json|rss)/.test(h);\n  return hasFeedExt || wpFeed || hazArc || jsonFeed;\n}\nfunction isRssIndexPage(u) {\n  const h = (u || '').toLowerCase();\n  return (\n    h.endsWith('/rss') || h.endsWith('/rss/') ||\n    h.includes('/rss-feeds') || h.includes('/rssfeeds') ||\n    h.includes('/services/rss') || h.includes('/service/rss') ||\n    h.includes('/hilfe/rss')\n  );\n}\n\n// --- Parser ---------------------------------------------------------------\nfunction fromHead(html, base) {\n  const out = []; const linkRe = /<link\\b[^>]*>/gi; let m;\n  while ((m = linkRe.exec(html)) !== null) {\n    const a = parseAttrs(m[0]); const rel = (a.rel || '').toLowerCase();\n    const type = (a.type || '').toLowerCase();\n    const href = a.href ? abs(a.href, base) : null; if (!href || !isHttp(href)) continue;\n    const relTokens = rel.split(/\\s+/).filter(Boolean);\n    const relIsFeed = relTokens.includes('alternate') || relTokens.includes('feed');\n    if (\n      (relIsFeed && (FEED_TYPES.includes(type) || type.includes('rss') || type.includes('atom') || type.includes('xml') || type.includes('json'))) ||\n      (relIsFeed && isRealFeedUrl(href)) ||\n      (!rel && (type.includes('rss') || type.includes('atom') || type.includes('xml') || type.includes('json')))\n    ) {\n      const isJson = type.includes('json') || /\\.json(?:$|\\?)/.test(href.toLowerCase());\n      out.push({ feedUrl: href, format: isJson ? 'json' : (type || 'xml') });\n    } else if (relIsFeed && isRssIndexPage(href)) {\n      out.push({ followUrl: href });\n    }\n  }\n  return out;\n}\nfunction fromBody(html, base) {\n  const out = []; const aRe = /<a\\b[^>]*>[\\s\\S]*?<\\/a>/gi; let m;\n  while ((m = aRe.exec(html)) !== null) {\n    const tag = m[0]; const a = parseAttrs(tag);\n    const href = a.href ? abs(a.href, base) : null; if (!href || !isHttp(href)) continue;\n    const inner = tag.match(/>([\\s\\S]*?)<\\/a>/i);\n    const txt = (inner ? inner[1] : '').replace(/\\s+/g, ' ').trim().toLowerCase();\n    const low = href.toLowerCase();\n    // bewusst KEIN 'abo'/'abonnieren' → führte zu tel:-Treffern\n    const mentions = /\\brss\\b|\\bfeed(s)?\\b|\\batom\\b|\\bxml\\b/.test(txt);\n    if (isRealFeedUrl(href) && !low.endsWith('.html') && !low.endsWith('.htm')) {\n      out.push({ feedUrl: href });\n    } else if (isRssIndexPage(href) || mentions) {\n      out.push({ followUrl: href });\n    }\n  }\n  return out;\n}\n// Rohtext-Scan für /arc/outboundfeeds/rss/ (auch ohne <a>/<link>)\nfunction fromAnyText(html, base) {\n  const out = [];\n  let m;\n  const reAbs = /https?:\\/\\/[^\\s\"'<>]*\\/arc\\/outboundfeeds\\/rss\\/[^\\s\"'<>]*/gi;\n  while ((m = reAbs.exec(html)) !== null) {\n    const u = m[0];\n    if (isHttp(u) && isRealFeedUrl(u)) out.push({ feedUrl: u });\n  }\n  const reRel = /(?:[\"'\\s(]|^)(\\/(?:[^\"'<>\\s)]*?)\\/arc\\/outboundfeeds\\/rss\\/[^\"'<>\\s)]*)/gi;\n  while ((m = reRel.exec(html)) !== null) {\n    const u = abs(m[1], base);\n    if (isHttp(u) && isRealFeedUrl(u)) out.push({ feedUrl: u });\n  }\n  return out;\n}\n\n// --- main ----------------------------------------------------------------\nconst results = [];\nfor (const it of items) {\n  const j = it.json || {};\n  const seed = j.seedUrl || '';\n  const html = htmlOf(j);\n  const baseHint = j.followUrl || j.seedUrl || '';\n  const base = getBase(html, baseHint);\n\n  const seen = new Set();\n  const add = (obj) => {\n    const val = (obj.feedUrl || obj.followUrl || '').trim();\n    if (!val || !isHttp(val)) return;\n    const key = val.toLowerCase();\n    if (!seen.has(key)) { seen.add(key); results.push({ ...obj, from: seed }); }\n  };\n\n  for (const f of fromHead(html, base)) add(f);\n  for (const f of fromBody(html, base)) add(f);\n  for (const f of fromAnyText(html, base)) add(f);\n\n  if (results.length === 0) {\n    const candidates = [\n      '/rss','/rss/','/feed','/feed/','/feeds','/feeds/','/rss.xml','/atom.xml','/index.xml',\n      '/blog/feed','/blog/rss','/services/rss','/services/rss/','/news/feed','/?feed=rss2',\n      '/service/rss','/service/rss/','/rss-feeds','/rss-feeds/','/hilfe/rss','/hilfe/rss/','/service/feeds','/service/feeds/'\n    ];\n    for (const g of candidates) { const u = abs(g, base); if (isHttp(u)) add({ followUrl: u }); }\n  }\n}\nreturn this.helpers.returnJsonArray(results);\n"
+      },
+      "id": "Extract2",
+      "name": "Extract2",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1380,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"feedUrl\"]}}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "IF feedUrl 2",
+      "name": "IF feedUrl 2",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"followUrl\"]}}",
+              "operation": "startsWith",
+              "value2": "http"
+            }
+          ]
+        }
+      },
+      "id": "IF follow http 2",
+      "name": "IF follow http 2",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$json[\"followUrl\"]}}",
+        "responseFormat": "string",
+        "options": {
+          "redirect": {
+            "followRedirects": true,
+            "maxRedirects": 15
+          }
+        },
+        "sendHeaders": true,
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0"
+            }
+          ]
+        }
+      },
+      "id": "HTTP Follow 3",
+      "name": "HTTP Follow 3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1820,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// === Extract Feeds (für 1st/2nd/3rd Hop identisch) =======================\n// Liefert feedUrl (echte Feeds) ODER followUrl (RSS-Übersichts-/Infoseiten).\n// - /rss, /rss/, /services/rss => followUrl (nie feedUrl)\n// - HAZ/NP /arc/outboundfeeds/rss/... => feedUrl (via <a>, <link> oder Rohtext)\n// - Nur http/https-Links werden emittiert (kein tel:, mailto:, javascript:)\n\n// -- helpers ---------------------------------------------------------------\nfunction decodeHtml(s) {\n  return (s || '')\n    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')\n    .replace(/&quot;/g, '\"').replace(/&#39;/g, \"'\");\n}\nfunction splitBase(base) {\n  base = (base || '').trim();\n  const m = base.match(/^(https?:)\\/\\/([^\\/?#]+)([^?#]*)?/i);\n  if (!m) return null;\n  const protocol = m[1], host = m[2];\n  let path = m[3] || '/', dir = path.endsWith('/') ? path : path.replace(/[^\\/]*$/, '');\n  if (!dir.startsWith('/')) dir = '/' + dir;\n  return { protocol, host, dir, origin: protocol + '//' + host };\n}\nfunction abs(href, base) {\n  href = decodeHtml((href || '').trim());\n  if (!href) return null;\n  if (/^[a-zA-Z][a-zA-Z0-9+\\-.]*:/.test(href)) return href; // already absolute (incl. tel:, mailto:)\n  if (href.startsWith('//')) { const b = splitBase(base); return (b ? b.protocol : 'https:') + href; }\n  const b = splitBase(base); if (!b) return null;\n  if (href.startsWith('/')) return b.origin + href;\n  let h = href;\n  while (h.startsWith('../')) { h = h.slice(3); b.dir = b.dir.replace(/[^\\/]+\\/?$/, ''); if (!b.dir) b.dir = '/'; }\n  if (h.startsWith('./')) h = h.slice(2);\n  return b.origin + (b.dir.endsWith('/') ? b.dir : b.dir + '/') + h;\n}\nfunction isHttp(u) { return /^https?:\\/\\//i.test(u || ''); }\nfunction htmlOf(j) {\n  if (typeof j === 'string') return j;\n  if (j && typeof j.data === 'string') return j.data;\n  if (j && typeof j.body === 'string') return j.body;\n  return '';\n}\nfunction getBase(html, hint) {\n  let base = hint || '';\n  const m = html.match(/<base[^>]+href\\s*=\\s*[\"']?([^\"'>\\s]+)[\"']?[^>]*>/i);\n  if (m && m[1]) { const u = abs(m[1], hint); if (u) base = u; }\n  return base;\n}\nfunction parseAttrs(tag) {\n  const out = {}; const re = /([a-zA-Z_:][-a-zA-Z0-9_:.]*)\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s\"'>]+))/g;\n  let m; while ((m = re.exec(tag)) !== null) { const k = m[1].toLowerCase(); out[k] = (m[2] ?? m[3] ?? m[4] ?? ''); }\n  return out;\n}\nconst FEED_TYPES = [\n  'application/rss+xml','application/atom+xml','application/rdf+xml',\n  'text/xml','application/xml','application/feed+json','application/json'\n];\n\n// --- Klassifizierer -------------------------------------------------------\nfunction isRealFeedUrl(u) {\n  const h = (u || '').toLowerCase();\n  const hasFeedExt = /\\.(rss|xml|atom|rdf)(?:$|\\?)/.test(h);\n  const wpFeed     = h.endsWith('/feed') || h.includes('/feed/');\n  const hazArc     = h.includes('/outboundfeeds/rss'); // HAZ/NP & Co.\n  const jsonFeed   = /\\.json(?:$|\\?)/.test(h) || /(?:^|[?&])feed=(json|rss)/.test(h);\n  return hasFeedExt || wpFeed || hazArc || jsonFeed;\n}\nfunction isRssIndexPage(u) {\n  const h = (u || '').toLowerCase();\n  return (\n    h.endsWith('/rss') || h.endsWith('/rss/') ||\n    h.includes('/rss-feeds') || h.includes('/rssfeeds') ||\n    h.includes('/services/rss') || h.includes('/service/rss') ||\n    h.includes('/hilfe/rss')\n  );\n}\n\n// --- Parser ---------------------------------------------------------------\nfunction fromHead(html, base) {\n  const out = []; const linkRe = /<link\\b[^>]*>/gi; let m;\n  while ((m = linkRe.exec(html)) !== null) {\n    const a = parseAttrs(m[0]); const rel = (a.rel || '').toLowerCase();\n    const type = (a.type || '').toLowerCase();\n    const href = a.href ? abs(a.href, base) : null; if (!href || !isHttp(href)) continue;\n    const relTokens = rel.split(/\\s+/).filter(Boolean);\n    const relIsFeed = relTokens.includes('alternate') || relTokens.includes('feed');\n    if (\n      (relIsFeed && (FEED_TYPES.includes(type) || type.includes('rss') || type.includes('atom') || type.includes('xml') || type.includes('json'))) ||\n      (relIsFeed && isRealFeedUrl(href)) ||\n      (!rel && (type.includes('rss') || type.includes('atom') || type.includes('xml') || type.includes('json')))\n    ) {\n      const isJson = type.includes('json') || /\\.json(?:$|\\?)/.test(href.toLowerCase());\n      out.push({ feedUrl: href, format: isJson ? 'json' : (type || 'xml') });\n    } else if (relIsFeed && isRssIndexPage(href)) {\n      out.push({ followUrl: href });\n    }\n  }\n  return out;\n}\nfunction fromBody(html, base) {\n  const out = []; const aRe = /<a\\b[^>]*>[\\s\\S]*?<\\/a>/gi; let m;\n  while ((m = aRe.exec(html)) !== null) {\n    const tag = m[0]; const a = parseAttrs(tag);\n    const href = a.href ? abs(a.href, base) : null; if (!href || !isHttp(href)) continue;\n    const inner = tag.match(/>([\\s\\S]*?)<\\/a>/i);\n    const txt = (inner ? inner[1] : '').replace(/\\s+/g, ' ').trim().toLowerCase();\n    const low = href.toLowerCase();\n    // bewusst KEIN 'abo'/'abonnieren' → führte zu tel:-Treffern\n    const mentions = /\\brss\\b|\\bfeed(s)?\\b|\\batom\\b|\\bxml\\b/.test(txt);\n    if (isRealFeedUrl(href) && !low.endsWith('.html') && !low.endsWith('.htm')) {\n      out.push({ feedUrl: href });\n    } else if (isRssIndexPage(href) || mentions) {\n      out.push({ followUrl: href });\n    }\n  }\n  return out;\n}\n// Rohtext-Scan für /arc/outboundfeeds/rss/ (auch ohne <a>/<link>)\nfunction fromAnyText(html, base) {\n  const out = [];\n  let m;\n  const reAbs = /https?:\\/\\/[^\\s\"'<>]*\\/arc\\/outboundfeeds\\/rss\\/[^\\s\"'<>]*/gi;\n  while ((m = reAbs.exec(html)) !== null) {\n    const u = m[0];\n    if (isHttp(u) && isRealFeedUrl(u)) out.push({ feedUrl: u });\n  }\n  const reRel = /(?:[\"'\\s(]|^)(\\/(?:[^\"'<>\\s)]*?)\\/arc\\/outboundfeeds\\/rss\\/[^\"'<>\\s)]*)/gi;\n  while ((m = reRel.exec(html)) !== null) {\n    const u = abs(m[1], base);\n    if (isHttp(u) && isRealFeedUrl(u)) out.push({ feedUrl: u });\n  }\n  return out;\n}\n\n// --- main ----------------------------------------------------------------\nconst results = [];\nfor (const it of items) {\n  const j = it.json || {};\n  const seed = j.seedUrl || '';\n  const html = htmlOf(j);\n  const baseHint = j.followUrl || j.seedUrl || '';\n  const base = getBase(html, baseHint);\n\n  const seen = new Set();\n  const add = (obj) => {\n    const val = (obj.feedUrl || obj.followUrl || '').trim();\n    if (!val || !isHttp(val)) return;\n    const key = val.toLowerCase();\n    if (!seen.has(key)) { seen.add(key); results.push({ ...obj, from: seed }); }\n  };\n\n  for (const f of fromHead(html, base)) add(f);\n  for (const f of fromBody(html, base)) add(f);\n  for (const f of fromAnyText(html, base)) add(f);\n\n  if (results.length === 0) {\n    const candidates = [\n      '/rss','/rss/','/feed','/feed/','/feeds','/feeds/','/rss.xml','/atom.xml','/index.xml',\n      '/blog/feed','/blog/rss','/services/rss','/services/rss/','/news/feed','/?feed=rss2',\n      '/service/rss','/service/rss/','/rss-feeds','/rss-feeds/','/hilfe/rss','/hilfe/rss/','/service/feeds','/service/feeds/'\n    ];\n    for (const g of candidates) { const u = abs(g, base); if (isHttp(u)) add({ followUrl: u }); }\n  }\n}\nreturn this.helpers.returnJsonArray(results);\n"
+      },
+      "id": "Extract3",
+      "name": "Extract3",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        2040,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"feedUrl\"]}}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "IF feedUrl 3",
+      "name": "IF feedUrl 3",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        2260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "append"
+      },
+      "id": "MergeFeeds",
+      "name": "Merge collected feeds",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 1,
+      "position": [
+        2460,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "function isRealFeed(u){const h=String(u||'').toLowerCase();return /(\\.(rss|xml|atom|rdf)(?:$|\\?))/.test(h)||h.endsWith('/feed')||h.includes('/feed/')||h.includes('/arc/outboundfeeds/rss/');}\nconst seen=new Set(),feeds=[];\nfor(const it of items){const u=it.json?.feedUrl;if(u&&isRealFeed(u)&&!seen.has(u)){seen.add(u);feeds.push(u);} }\nconst buf=Buffer.from(JSON.stringify({feeds},null,2),'utf-8');\nconst bin=await this.helpers.prepareBinaryData(buf,'feeds.json','application/json');\nreturn [{json:{count:feeds.length},binary:{data:bin}}];"
+      },
+      "id": "AggregateFeeds",
+      "name": "Function: Aggregate → feeds.json",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        2660,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "fileName": "/data/config/feeds.json",
+        "binaryPropertyName": "data"
+      },
+      "id": "WriteFeeds",
+      "name": "Write Binary File: /data/config/feeds.json",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        2860,
+        200
+      ]
+    }
+  ],
+  "connections": {
+    "Seeds": {
+      "main": [
+        [
+          {
+            "node": "HttpHome",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "MergeSeedGet",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "HttpHome": {
+      "main": [
+        [
+          {
+            "node": "MergeSeedGet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MergeSeedGet": {
+      "main": [
+        [
+          {
+            "node": "Extract1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract1": {
+      "main": [
+        [
+          {
+            "node": "IF feedUrl 1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "IF follow http 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF feedUrl 1": {
+      "main": [
+        [
+          {
+            "node": "MergeFeeds",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "IF follow http 1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Follow 2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "HTTP Follow 2": {
+      "main": [
+        [
+          {
+            "node": "Extract2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract2": {
+      "main": [
+        [
+          {
+            "node": "IF feedUrl 2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "IF follow http 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF feedUrl 2": {
+      "main": [
+        [
+          {
+            "node": "MergeFeeds",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "IF follow http 2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Follow 3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "HTTP Follow 3": {
+      "main": [
+        [
+          {
+            "node": "Extract3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract3": {
+      "main": [
+        [
+          {
+            "node": "IF feedUrl 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF feedUrl 3": {
+      "main": [
+        [
+          {
+            "node": "MergeFeeds",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "MergeFeeds": {
+      "main": [
+        [
+          {
+            "node": "AggregateFeeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AggregateFeeds": {
+      "main": [
+        [
+          {
+            "node": "WriteFeeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  }
+}

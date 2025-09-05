@@ -1,0 +1,96 @@
+{
+  "name": "Export – newsletter.json by region",
+  "nodes": [
+    {
+      "parameters": {
+        "filePath": "/data/staging/articles.json"
+      },
+      "id": "ReadArticles",
+      "name": "Read articles.json",
+      "type": "n8n-nodes-base.readBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        260,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const q = ($json.region || $params.region || 'hannover').toLowerCase();\nconst arr = JSON.parse(Buffer.from(items[0].binary.data.data,'base64').toString('utf-8'));\nconst out = arr.filter(a=> JSON.stringify(a).toLowerCase().includes(q));\nreturn [{json:{region:q, items: out}}];"
+      },
+      "id": "FilterRegion",
+      "name": "Function: Filter by region",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        480,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const payload={export_version:'1.0.0',generated_at:new Date().toISOString(),region:items[0].json.region,items:items[0].json.items};\nconst buf=Buffer.from(JSON.stringify(payload,null,2),'utf-8');\nconst bin=await this.helpers.prepareBinaryData(buf,'newsletter.json','application/json');\nreturn [{json:{count:payload.items.length},binary:{data:bin}}];"
+      },
+      "id": "BuildExport",
+      "name": "Function: Build newsletter.json",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        700,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "fileName": "/data/exports/newsletter.json",
+        "binaryPropertyName": "data"
+      },
+      "id": "WriteExport",
+      "name": "Write Binary File: newsletter.json",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        920,
+        200
+      ]
+    }
+  ],
+  "connections": {
+    "ReadArticles": {
+      "main": [
+        [
+          {
+            "node": "FilterRegion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FilterRegion": {
+      "main": [
+        [
+          {
+            "node": "BuildExport",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BuildExport": {
+      "main": [
+        [
+          {
+            "node": "WriteExport",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "name": "Ingest – Loop Feeds (articles.json)",
+  "nodes": [
+    {
+      "parameters": {
+        "filePath": "/data/config/feeds.json"
+      },
+      "id": "ReadFeeds",
+      "name": "Read feeds.json",
+      "type": "n8n-nodes-base.readBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        200,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const obj = JSON.parse(Buffer.from(items[0].binary.data.data,'base64').toString('utf-8'));\nreturn (obj.feeds||[]).map(u=>({json:{feedUrl:u}}));"
+      },
+      "id": "ParseFeeds",
+      "name": "Function: Parse feeds",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        420,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$json[\"feedUrl\"]}}",
+        "responseFormat": "string",
+        "options": {
+          "redirect": {
+            "followRedirects": true
+          }
+        },
+        "sendHeaders": true,
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0"
+            }
+          ]
+        }
+      },
+      "id": "FetchRSS",
+      "name": "HTTP Request: Fetch RSS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        640,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "return items.map(it=>({json:{source:$json.feedUrl, raw: it.json || it}}));"
+      },
+      "id": "Normalize",
+      "name": "Function: Normalize Articles",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        860,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const buf = Buffer.from(JSON.stringify(items.map(i=>i.json), null, 2), 'utf-8');\nconst bin = await this.helpers.prepareBinaryData(buf, 'articles.json', 'application/json');\nreturn [{json:{count:items.length}, binary:{data:bin}}];"
+      },
+      "id": "ToBin",
+      "name": "Function: toBinary",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        860,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "fileName": "/data/staging/articles.json",
+        "binaryPropertyName": "data"
+      },
+      "id": "WriteArticles",
+      "name": "Write Binary File: articles.json",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        1080,
+        200
+      ]
+    }
+  ],
+  "connections": {
+    "ReadFeeds": {
+      "main": [
+        [
+          {
+            "node": "ParseFeeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ParseFeeds": {
+      "main": [
+        [
+          {
+            "node": "FetchRSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FetchRSS": {
+      "main": [
+        [
+          {
+            "node": "Normalize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize": {
+      "main": [
+        [
+          {
+            "node": "ToBin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ToBin": {
+      "main": [
+        [
+          {
+            "node": "WriteArticles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "saveManualExecutions": true
+  }
+}
