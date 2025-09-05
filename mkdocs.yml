@@ -35,6 +35,7 @@ nav:
       - Systemübersicht: architecture/overview.md
       - Datenmodell: architecture/data.md
   - How-tos:
+      - Setup n8n (lokal/Docker): howto/n8n-local-setup.md
       - Setup Hannover MVP: howto/setup-hannover.md
       - Newsletter-Versand: howto/newsletter.md
   - Reference:
@@ -45,6 +46,7 @@ nav:
       - ADR-0003 Geo-Aboutness/Region-Scoring: adr/ADR-0003-geo-aboutness-region-scoring.md
       - ADR-0004 Bild-Policy (Proposed): adr/ADR-0004-bild-policy.md
   - Runbooks:
+      - Discovery – automatische Feed-Suche (Hannover MVP): runbooks/discovery-hannover-mvp.md
       - Newsletter – DOI/Impressum/Tracking (Master): runbooks/newsletter-compliance-runbook-master-2025-09-04.md
       - Phase 2 Readme: runbooks/phase2-readme.md
       - Pilotplan Phase 2: runbooks/phase2-pilot.md
@@ -90,5 +92,6 @@ markdown_extensions:
 
 plugins:
   - search
+
 
 
